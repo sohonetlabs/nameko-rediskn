@@ -1,0 +1,32 @@
+language: python
+python: 3.7
+
+dist: xenial
+
+before_install:
+  - make docker-rabbitmq-run
+  - make docker-redis-run
+
+install:
+  - pip install tox
+
+matrix:
+  include:
+    - stage: test
+      python: 3.4
+      env: TOX_ENV=py34
+
+    - stage: test
+      python: 3.5
+      env: TOX_ENV=py35
+
+    - stage: test
+      python: 3.6
+      env: TOX_ENV=py36
+
+    - stage: test
+      python: 3.7
+      env: TOX_ENV=py37
+
+script:
+  - tox -e $TOX_ENV
