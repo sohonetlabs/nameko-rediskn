@@ -121,7 +121,7 @@ variable:
 Nameko support
 --------------
 
-The following Nameko_ versions are supported: ``2.11``.
+The following Nameko_ versions are supported: ``2.11``, ``2.12``.
 
 
 Changelog

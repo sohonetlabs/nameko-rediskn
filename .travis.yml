@@ -14,19 +14,13 @@ matrix:
   include:
     - stage: test
       python: 3.4
-      env: TOX_ENV=py34
-
-    - stage: test
-      python: 3.5
-      env: TOX_ENV=py35
-
-    - stage: test
-      python: 3.6
-      env: TOX_ENV=py36
-
-    - stage: test
-      python: 3.7
-      env: TOX_ENV=py37
+      env: TOX_ENV="py34-nameko{2.11,2.12,latest}"
+    - python: 3.5
+      env: TOX_ENV="py35-nameko{2.11,2.12,latest}"
+    - python: 3.6
+      env: TOX_ENV="py36-nameko{2.11,2.12,latest}"
+    - python: 3.7
+      env: TOX_ENV="py37-nameko{2.11,2.12,latest}"
 
 script:
   - tox -e $TOX_ENV
