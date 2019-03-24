@@ -25,8 +25,8 @@ setup(
     extras_require={
         'dev': [
             'pytest==4.3.1',
+            'coverage==4.5.3',
             'flake8',
-            'coverage',
             'restructuredtext-lint',
             'Pygments',
         ],
