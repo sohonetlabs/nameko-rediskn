@@ -124,6 +124,13 @@ Nameko support
 The following Nameko_ versions are supported: ``2.11``.
 
 
+Changelog
+---------
+
+Consult the CHANGELOG_ document for fixes and enhancements of each
+version.
+
+
 License
 -------
 
@@ -133,4 +140,5 @@ The MIT License. See LICENSE_ for details.
 .. _Nameko: http://nameko.readthedocs.org
 .. _Redis Keyspace Notifications: https://redis.io/topics/notifications
 .. _Nameko Redis: https://github.com/etataurov/nameko-redis
+.. _CHANGELOG: https://github.com/sohonetlabs/nameko-rediskn/blob/master/CHANGELOG.rst
 .. _LICENSE: https://github.com/sohonetlabs/nameko-rediskn/blob/master/LICENSE
