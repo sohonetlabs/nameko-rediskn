@@ -128,6 +128,15 @@ However, this extension should work from, at least, Nameko_ ``2.6``
 onwards.
 
 
+Redis support
+-------------
+
+The following `Redis Python`_ versions are actively supported: ``2.10``,
+``3.0``, ``3.1``, ``3.2``.
+
+Redis_ ``4.0`` is actively supported.
+
+
 Changelog
 ---------
 
@@ -142,6 +151,8 @@ The MIT License. See LICENSE_ for details.
 
 
 .. _Nameko: http://nameko.readthedocs.org
+.. _Redis Python: https://github.com/andymccurdy/redis-py
+.. _Redis: https://redis.io
 .. _Redis Keyspace Notifications: https://redis.io/topics/notifications
 .. _Nameko Redis: https://github.com/etataurov/nameko-redis
 .. _CHANGELOG: https://github.com/sohonetlabs/nameko-rediskn/blob/master/CHANGELOG.rst
