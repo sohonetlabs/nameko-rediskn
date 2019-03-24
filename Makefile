@@ -15,7 +15,7 @@ rst-lint:
 	rst-lint CHANGELOG.rst
 
 flake8:
-	flake8 $(PACKAGE_NAME) test
+	flake8 $(PACKAGE_NAME) test setup.py
 
 test:
 	pytest test $(ARGS) \
