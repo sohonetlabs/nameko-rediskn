@@ -121,7 +121,11 @@ variable:
 Nameko support
 --------------
 
-The following Nameko_ versions are supported: ``2.11``, ``2.12``.
+The following Nameko_ versions are actively supported: ``2.11``,
+``2.12``.
+
+However, this extension should work from, at least, Nameko_ ``2.6``
+onwards.
 
 
 Changelog
