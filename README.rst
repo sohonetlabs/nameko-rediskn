@@ -86,8 +86,8 @@ containers locally using the default ports and configuration:
 
  .. code-block:: shell
 
-    $ make docker-rabbitmq-run
-    $ make docker-redis-run
+    $ make rabbitmq-container
+    $ make redis-container
 
 To run the tests locally:
 

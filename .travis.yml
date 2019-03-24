@@ -4,8 +4,8 @@ python: 3.7
 dist: xenial
 
 before_install:
-  - make docker-rabbitmq-run
-  - make docker-redis-run
+  - make rabbitmq-container
+  - make redis-container
 
 install:
   - pip install tox

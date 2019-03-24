@@ -33,12 +33,12 @@ coverage: rst-lint flake8
 
 # Docker test containers
 
-docker-rabbitmq-run:
+rabbitmq-container:
 	docker run -d --rm --name rabbitmq-nameko-rediskn \
 		-p 15672:15672 -p 5672:5672 \
 		rabbitmq:$(RABBITMQ_VERSION)
 
-docker-redis-run:
+redis-container:
 	docker run -d --rm --name redis-nameko-rediskn \
 		-p 6379:6379 \
 		redis:$(REDIS_VERSION)
