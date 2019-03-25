@@ -40,7 +40,6 @@ def create_service(container_factory, config, tracker):
 
 @pytest.fixture
 def create_dummy_service(create_service):
-
     def _create_dummy_service(**kwargs):
         return create_service(**kwargs)
 

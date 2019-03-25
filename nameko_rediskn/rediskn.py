@@ -109,7 +109,6 @@ class RedisKNEntrypoint(Entrypoint):
 
         self.client = None
         self._thread = None
-
         super().__init__(**kwargs)
 
     def setup(self):
@@ -125,7 +124,6 @@ class RedisKNEntrypoint(Entrypoint):
 
     def start(self):
         self._thread = self.container.spawn_managed_thread(self._run)
-
         super().start()
 
     def stop(self):
@@ -133,7 +131,6 @@ class RedisKNEntrypoint(Entrypoint):
             self._thread.kill()
             self._thread = None
         self.client = None
-
         super().stop()
 
     def kill(self):
@@ -141,7 +138,6 @@ class RedisKNEntrypoint(Entrypoint):
             self._thread.kill()
             self._thread = None
         self.client = None
-
         super().kill()
 
     def _run(self):
@@ -192,8 +188,7 @@ class RedisKNEntrypoint(Entrypoint):
 
         if self._notification_events is not None:
             client.config_set(
-                NOTIFICATIONS_SETTING_KEY,
-                self._notification_events
+                NOTIFICATIONS_SETTING_KEY, self._notification_events
             )
 
         self.client = client
