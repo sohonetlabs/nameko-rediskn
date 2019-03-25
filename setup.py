@@ -18,10 +18,7 @@ setup(
     author_email='julio.trigo@sohonet.com',
     url='https://github.com/sohonetlabs/nameko-rediskn',
     packages=find_packages(exclude=['test', 'test.*']),
-    install_requires=[
-        'nameko>=2.6',
-        'redis>=2.10.5',
-    ],
+    install_requires=['nameko>=2.6', 'redis>=2.10.5'],
     extras_require={
         'dev': [
             'pytest==4.3.1',
