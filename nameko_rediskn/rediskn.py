@@ -6,7 +6,7 @@ from redis import StrictRedis
 from nameko.extensions import Entrypoint
 
 
-REDIS_OPTIONS = {'charset': 'utf-8', 'decode_responses': True}
+REDIS_OPTIONS = {'encoding': 'utf-8', 'decode_responses': True}
 
 NOTIFICATIONS_SETTING_KEY = 'notify-keyspace-events'
 """
