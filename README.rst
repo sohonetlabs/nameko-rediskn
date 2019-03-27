@@ -41,7 +41,7 @@ Usage example:
 
         name = 'my-service'
 
-        @rediskn.subscribe(keys='foo/bar-*')
+        @rediskn.subscribe(uri_config_key='MY_REDIS', keys='foo/bar-*')
         def subscriber(self, message):
             event_type = message['data']
             if event_type != 'expired':
@@ -58,18 +58,20 @@ Nameko_ configuration file:
 
     # config.yaml
 
-    REDIS_NOTIFICATION_EVENTS: "KEA"
-    REDIS_URIS:
-        session: "redis://localhost:6380/0"
+    REDIS:
+        NOTIFICATION_EVENTS: "KEA"
 
-``REDIS_NOTIFICATION_EVENTS`` is optional and can be omited or just
+    REDIS_URIS:
+        MY_REDIS: "redis://localhost:6380/0"
+
+``REDIS[NOTIFICATION_EVENTS]`` is optional and can be omited or just
 contain ``None``. Otherwise, it must have a valid value for the
 ``'notify-keyspace-events'`` Redis client configuration attribute. This
 should be ideally set on the server side, as setting it in one of the
 Redis clients will affect the rest of them.
 
 ``REDIS_URIS`` follows the config format used by the `Nameko Redis`_
-dependency provider, where ``session`` is just the attribute name
+dependency provider, where ``MY_REDIS`` is just the attribute name
 refering to the Redis URI of the instance being used.
 
 

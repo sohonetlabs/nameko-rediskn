@@ -3,6 +3,7 @@ from itertools import chain
 
 from redis import StrictRedis
 
+from nameko.exceptions import ConfigurationError
 from nameko.extensions import Entrypoint
 
 
@@ -68,7 +69,7 @@ class RedisKNEntrypoint(Entrypoint):
 
             name = 'my-service'
 
-            @rediskn.subscribe(keys='foo/bar-*')
+            @rediskn.subscribe(uri_config_key='MY_REDIS', keys='foo/bar-*')
             def subscriber(self, message):
                 event_type = message['data']
                 if event_type != 'expired':
@@ -79,14 +80,19 @@ class RedisKNEntrypoint(Entrypoint):
                 # ...
     """
 
-    def __init__(self, events=None, keys=None, dbs=None, **kwargs):
+    def __init__(
+        self, uri_config_key, events=None, keys=None, dbs=None, **kwargs
+    ):
         """Initialize the notification events settings.
 
         Args:
+            uri_config_key (str): Redis URI config key
             events (str or list(str)): One or more events to subscribe to
             keys (str or list(str)): One or more keys to subscribe to
             dbs (str or list(str)): One or more redis dbs to subscribe to
         """
+        self.uri_config_key = uri_config_key
+
         if events is None:
             self.events = []
         else:
@@ -98,9 +104,11 @@ class RedisKNEntrypoint(Entrypoint):
             self.keys = _to_list(keys)
 
         if not self.events and not self.keys:
-            raise RuntimeError(
+            error_message = (
                 'Provide either `events` or `keys` to get notifications'
             )
+            log.error(error_message)
+            raise ConfigurationError(error_message)
 
         if dbs is None:
             self.dbs = None
@@ -112,14 +120,12 @@ class RedisKNEntrypoint(Entrypoint):
         super().__init__(**kwargs)
 
     def setup(self):
-        # TODO: find a better way to expose the redis URL without
-        # harcoding 'session'
-        self._redis_uri = self.container.config['REDIS_URIS']['session']
+        self._redis_uri = self.container.config['REDIS_URIS'][
+            self.uri_config_key
+        ]
+        redis_config = self.container.config.get('REDIS', {})
         # This should ideally be set in redis.conf
-        self._notification_events = self.container.config.get(
-            'REDIS_NOTIFICATION_EVENTS'
-        )
-
+        self._notification_events = redis_config.get('NOTIFICATION_EVENTS')
         super().setup()
 
     def start(self):

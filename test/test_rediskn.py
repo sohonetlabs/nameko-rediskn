@@ -1,12 +1,13 @@
-from time import sleep
 from collections import namedtuple
 from unittest.mock import call, patch, Mock, MagicMock
 
-from redis import StrictRedis
 import pytest
+from eventlet import sleep
+from nameko.exceptions import ConfigurationError
+from redis import StrictRedis
 
 from nameko_rediskn import rediskn
-from test import assert_items_equal
+from test import assert_items_equal, URI_CONFIG_KEY, REDIS_OPTIONS
 
 
 TIME_SLEEP = 0.1
@@ -46,26 +47,25 @@ def create_dummy_service(create_service):
     return _create_dummy_service
 
 
-@pytest.fixture
-def redis(config):
-    redis_uri = config['REDIS_URIS']['session']
-    client = StrictRedis.from_url(redis_uri)
-    client.flushall()
-    return client
-
-
 class TestRedisNotifierSetup:
 
     @pytest.fixture
     def service(self, create_dummy_service):
         return create_dummy_service(events='*', keys='*', dbs='*')
 
-    def test_raises_if_wrong_arguments(self, create_dummy_service):
-        with pytest.raises(RuntimeError):
+    def test_raises_if_uri_config_key_not_supplied(self, create_dummy_service):
+        with pytest.raises(TypeError):
             create_dummy_service()
 
-        with pytest.raises(RuntimeError):
-            create_dummy_service(dbs=[1])
+        with pytest.raises(TypeError):
+            create_dummy_service(events='*', keys='*', dbs=[1])
+
+    def test_raises_if_missing_arguments(self, create_dummy_service):
+        with pytest.raises(ConfigurationError):
+            create_dummy_service(uri_config_key=URI_CONFIG_KEY)
+
+        with pytest.raises(ConfigurationError):
+            create_dummy_service(uri_config_key=URI_CONFIG_KEY, dbs=[1])
 
     def test_container_stop(self, create_dummy_service):
         with patch(
@@ -74,7 +74,9 @@ class TestRedisNotifierSetup:
             thread_mock = MagicMock()
             thread_mock.kill.return_value = MagicMock()
             spawn_managed_thread.return_value = thread_mock
-            service = create_dummy_service(events='*')
+            service = create_dummy_service(
+                uri_config_key=URI_CONFIG_KEY, events='*'
+            )
             service.container.stop()
 
         assert thread_mock.kill.call_args_list == [call()]
@@ -90,7 +92,9 @@ class TestRedisNotifierSetup:
             thread_mock = MagicMock()
             thread_mock.kill.return_value = MagicMock()
             spawn_managed_thread.return_value = thread_mock
-            service = create_dummy_service(events='*')
+            service = create_dummy_service(
+                uri_config_key=URI_CONFIG_KEY, events='*'
+            )
             service.container.kill()
 
         assert thread_mock.kill.call_args_list == [call()]
@@ -104,7 +108,9 @@ class TestListenAll:
 
     @pytest.fixture
     def service(self, create_dummy_service):
-        return create_dummy_service(events='*', keys='*', dbs='*')
+        return create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*'
+        )
 
     @pytest.mark.usefixtures('service')
     def test_subscribe_events(self, tracker, redis):
@@ -255,7 +261,9 @@ class TestListenAll:
 class TestListenEvents:
 
     def test_subscribe_events(self, create_dummy_service, tracker, redis):
-        create_dummy_service(events='psubscribe', dbs='*')
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, events='psubscribe', dbs='*'
+        )
         assert tracker.run.call_args_list == [
             call({
                 'type': 'psubscribe',
@@ -266,7 +274,9 @@ class TestListenEvents:
         ]
 
     def test_listen_event(self, create_dummy_service, tracker, redis):
-        create_dummy_service(events='set', dbs='*')
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, events='set', dbs='*'
+        )
 
         redis.set('foo', 'bar')
         sleep(TIME_SLEEP)
@@ -282,7 +292,9 @@ class TestListenEvents:
     def test_listen_multiple_events(
         self, create_dummy_service, tracker, redis, events
     ):
-        create_dummy_service(events=events, dbs='*')
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, events=events, dbs='*'
+        )
 
         redis.set('foo', 'bar')
         sleep(TIME_SLEEP)
@@ -305,7 +317,9 @@ class TestListenEvents:
         })
 
     def test_ignores_other_events(self, create_dummy_service, tracker, redis):
-        create_dummy_service(events='hset', dbs='*')
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, events='hset', dbs='*'
+        )
         tracker.run.reset_mock()
 
         redis.set('foo', 'bar')
@@ -317,7 +331,9 @@ class TestListenEvents:
 class TestListenKeys:
 
     def test_subscribe_events(self, create_dummy_service, tracker, redis):
-        create_dummy_service(keys='foo', dbs='*')
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*'
+        )
         assert tracker.run.call_args_list == [
             call({
                 'type': 'psubscribe',
@@ -328,7 +344,9 @@ class TestListenKeys:
         ]
 
     def test_listen_key(self, create_dummy_service, tracker, redis):
-        create_dummy_service(keys='foo', dbs='*')
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*'
+        )
 
         redis.set('foo', 'bar')
         sleep(TIME_SLEEP)
@@ -344,7 +362,9 @@ class TestListenKeys:
     def test_listen_multiple_keys(
         self, create_dummy_service, tracker, redis, keys
     ):
-        create_dummy_service(keys=keys, dbs='*')
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, keys=keys, dbs='*'
+        )
 
         redis.set('foo', '1')
         sleep(TIME_SLEEP)
@@ -367,7 +387,9 @@ class TestListenKeys:
         })
 
     def test_ignores_other_keys(self, create_dummy_service, tracker, redis):
-        create_dummy_service(keys='foo', dbs='*')
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*'
+        )
         tracker.run.reset_mock()
 
         redis.set('bar', '2')
@@ -379,15 +401,19 @@ class TestListenKeys:
 class TestListenDB:
 
     @pytest.fixture
-    def redis_db_1(self, config):
+    def redis_db_1(self, redis_config):
         # url argument takes precedence over db in the url
-        redis_uri = '{}?db=1'.format(config['REDIS_URIS']['session'])
-        client = StrictRedis.from_url(redis_uri, db=1)
+        redis_uri = '{}?db=1'.format(
+            redis_config['REDIS_URIS'][URI_CONFIG_KEY]
+        )
+        client = StrictRedis.from_url(redis_uri, db=1, **REDIS_OPTIONS)
         client.flushall()
         return client
 
     def test_subscribes_to_db_from_uri(self, create_dummy_service, tracker):
-        create_dummy_service(keys='*', events='*')
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, keys='*', events='*'
+        )
         assert tracker.run.call_args_list == [
             call({
                 'type': 'psubscribe',
@@ -404,7 +430,9 @@ class TestListenDB:
         ]
 
     def test_subscribe_events(self, create_dummy_service, tracker):
-        create_dummy_service(keys='*', events='*', dbs=1)
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1
+        )
         assert tracker.run.call_args_list == [
             call({
                 'type': 'psubscribe',
@@ -421,7 +449,9 @@ class TestListenDB:
         ]
 
     def test_listen_db(self, create_dummy_service, tracker, redis_db_1):
-        create_dummy_service(keys='*', events='*', dbs=1)
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1
+        )
 
         redis_db_1.set('foo', 'bar')
         sleep(TIME_SLEEP)
@@ -447,7 +477,9 @@ class TestListenDB:
     def test_listen_multiple_dbs(
         self, create_dummy_service, tracker, redis, redis_db_1
     ):
-        create_dummy_service(keys='*', events='*', dbs=[0, 1])
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=[0, 1]
+        )
 
         redis.set('foo', '1')
         sleep(TIME_SLEEP)
@@ -494,7 +526,9 @@ class TestListenDB:
     def test_ignores_other_dbs(
         self, create_dummy_service, tracker, redis_db_1
     ):
-        create_dummy_service(keys='*', events='*', dbs=0)
+        create_dummy_service(
+            uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=0
+        )
         tracker.run.reset_mock()
 
         redis_db_1.set('foo', 'bar')
