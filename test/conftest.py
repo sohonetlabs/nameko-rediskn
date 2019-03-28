@@ -1,7 +1,7 @@
 import pytest
 from redis import StrictRedis
 
-from test import URI_CONFIG_KEY, REDIS_OPTIONS
+from test import REDIS_OPTIONS, URI_CONFIG_KEY
 
 
 @pytest.fixture

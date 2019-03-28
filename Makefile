@@ -26,6 +26,7 @@ coverage: rst-lint flake8
 	coverage run \
 		--concurrency=eventlet \
 		--source $(PACKAGE_NAME) \
+		--branch \
 		-m pytest test $(ARGS) \
 		--rabbit-ctl-uri $(RABBIT_CTL_URI) \
 		--amqp-uri $(AMQP_URI)

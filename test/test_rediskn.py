@@ -7,7 +7,7 @@ from nameko.exceptions import ConfigurationError
 from redis import StrictRedis
 
 from nameko_rediskn import rediskn
-from test import assert_items_equal, URI_CONFIG_KEY, REDIS_OPTIONS
+from test import assert_items_equal, REDIS_OPTIONS, URI_CONFIG_KEY
 
 
 TIME_SLEEP = 0.1
@@ -20,7 +20,7 @@ def tracker():
 
 @pytest.fixture
 def create_service(container_factory, config, tracker):
-    def create(**kwargs):
+    def create(config=config, **kwargs):
         class DummyService:
 
             name = 'dummy_service'
@@ -39,7 +39,47 @@ def create_service(container_factory, config, tracker):
     return create
 
 
-class TestRedisNotifierSetup:
+class TestConfig:
+
+    def test_raises_if_uri_config_key_not_found(self, create_service, config):
+        config['REDIS_URIS'] = {'WRONG_KEY': "redis://localhost:6379/0"}
+
+        with pytest.raises(KeyError) as exc:
+            create_service(
+                config=config, uri_config_key=URI_CONFIG_KEY, events='*',
+                keys='*', dbs='*'
+            )
+
+        assert exc.value.args[0] == 'TEST_KEY'
+
+    def test_uses_notification_events_config_if_provided(
+        self, create_service, config
+    ):
+        config['REDIS']['NOTIFICATION_EVENTS'] = 'TEST_VALUE'
+
+        with patch('nameko_rediskn.rediskn.StrictRedis') as strict_redis_mock:
+            create_service(
+                uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*'
+            )
+            redis_mock = strict_redis_mock.from_url.return_value
+            assert redis_mock.config_set.call_args_list == [
+                call('notify-keyspace-events', 'TEST_VALUE')
+            ]
+
+    def test_does_not_use_notification_events_config_if_not_provided(
+        self, create_service, config
+    ):
+        config['REDIS'].pop('NOTIFICATION_EVENTS')
+
+        with patch('nameko_rediskn.rediskn.StrictRedis') as strict_redis_mock:
+            create_service(
+                uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*'
+            )
+            redis_mock = strict_redis_mock.from_url.return_value
+            assert redis_mock.config_set.call_args_list == []
+
+
+class TestSubscribeAPI:
 
     def test_raises_if_uri_config_key_not_supplied(self, create_service):
         with pytest.raises(TypeError):
@@ -55,7 +95,10 @@ class TestRedisNotifierSetup:
         with pytest.raises(ConfigurationError):
             create_service(uri_config_key=URI_CONFIG_KEY, dbs=[1])
 
-    def test_container_stop(self, create_service):
+
+class TestContainerStop:
+
+    def test_kills_thread_if_exists(self, create_service):
         with patch(
             'nameko.containers.ServiceContainer.spawn_managed_thread'
         ) as spawn_managed_thread:
@@ -73,7 +116,28 @@ class TestRedisNotifierSetup:
         assert entrypoint._thread is None
         assert entrypoint.client is None
 
-    def test_container_kill(self, create_service):
+    def test_does_not_kill_thread_if_not_exists(self, create_service):
+        with patch(
+            'nameko.containers.ServiceContainer.spawn_managed_thread'
+        ) as spawn_managed_thread:
+            thread_mock = MagicMock()
+            thread_mock.kill.return_value = MagicMock()
+            spawn_managed_thread.return_value = None
+            service = create_service(
+                uri_config_key=URI_CONFIG_KEY, events='*'
+            )
+            service.container.stop()
+
+        assert thread_mock.kill.call_args_list == []
+
+        entrypoint = next(iter(service.container.entrypoints))
+        assert entrypoint._thread is None
+        assert entrypoint.client is None
+
+
+class TestContainerKill:
+
+    def test_kills_thread_if_exists(self, create_service):
         with patch(
             'nameko.containers.ServiceContainer.spawn_managed_thread'
         ) as spawn_managed_thread:
@@ -86,6 +150,24 @@ class TestRedisNotifierSetup:
             service.container.kill()
 
         assert thread_mock.kill.call_args_list == [call()]
+
+        entrypoint = next(iter(service.container.entrypoints))
+        assert entrypoint._thread is None
+        assert entrypoint.client is None
+
+    def test_does_not_kill_thread_if_not_exists(self, create_service):
+        with patch(
+            'nameko.containers.ServiceContainer.spawn_managed_thread'
+        ) as spawn_managed_thread:
+            thread_mock = MagicMock()
+            thread_mock.kill.return_value = MagicMock()
+            spawn_managed_thread.return_value = None
+            service = create_service(
+                uri_config_key=URI_CONFIG_KEY, events='*'
+            )
+            service.container.kill()
+
+        assert thread_mock.kill.call_args_list == []
 
         entrypoint = next(iter(service.container.entrypoints))
         assert entrypoint._thread is None
