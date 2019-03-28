@@ -39,42 +39,30 @@ def create_service(container_factory, config, tracker):
     return create
 
 
-@pytest.fixture
-def create_dummy_service(create_service):
-    def _create_dummy_service(**kwargs):
-        return create_service(**kwargs)
-
-    return _create_dummy_service
-
-
 class TestRedisNotifierSetup:
 
-    @pytest.fixture
-    def service(self, create_dummy_service):
-        return create_dummy_service(events='*', keys='*', dbs='*')
-
-    def test_raises_if_uri_config_key_not_supplied(self, create_dummy_service):
+    def test_raises_if_uri_config_key_not_supplied(self, create_service):
         with pytest.raises(TypeError):
-            create_dummy_service()
+            create_service()
 
         with pytest.raises(TypeError):
-            create_dummy_service(events='*', keys='*', dbs=[1])
+            create_service(events='*', keys='*', dbs=[1])
 
-    def test_raises_if_missing_arguments(self, create_dummy_service):
+    def test_raises_if_missing_arguments(self, create_service):
         with pytest.raises(ConfigurationError):
-            create_dummy_service(uri_config_key=URI_CONFIG_KEY)
+            create_service(uri_config_key=URI_CONFIG_KEY)
 
         with pytest.raises(ConfigurationError):
-            create_dummy_service(uri_config_key=URI_CONFIG_KEY, dbs=[1])
+            create_service(uri_config_key=URI_CONFIG_KEY, dbs=[1])
 
-    def test_container_stop(self, create_dummy_service):
+    def test_container_stop(self, create_service):
         with patch(
             'nameko.containers.ServiceContainer.spawn_managed_thread'
         ) as spawn_managed_thread:
             thread_mock = MagicMock()
             thread_mock.kill.return_value = MagicMock()
             spawn_managed_thread.return_value = thread_mock
-            service = create_dummy_service(
+            service = create_service(
                 uri_config_key=URI_CONFIG_KEY, events='*'
             )
             service.container.stop()
@@ -85,14 +73,14 @@ class TestRedisNotifierSetup:
         assert entrypoint._thread is None
         assert entrypoint.client is None
 
-    def test_container_kill(self, create_dummy_service):
+    def test_container_kill(self, create_service):
         with patch(
             'nameko.containers.ServiceContainer.spawn_managed_thread'
         ) as spawn_managed_thread:
             thread_mock = MagicMock()
             thread_mock.kill.return_value = MagicMock()
             spawn_managed_thread.return_value = thread_mock
-            service = create_dummy_service(
+            service = create_service(
                 uri_config_key=URI_CONFIG_KEY, events='*'
             )
             service.container.kill()
@@ -107,8 +95,8 @@ class TestRedisNotifierSetup:
 class TestListenAll:
 
     @pytest.fixture
-    def service(self, create_dummy_service):
-        return create_dummy_service(
+    def service(self, create_service):
+        return create_service(
             uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*'
         )
 
@@ -260,8 +248,8 @@ class TestListenAll:
 
 class TestListenEvents:
 
-    def test_subscribe_events(self, create_dummy_service, tracker, redis):
-        create_dummy_service(
+    def test_subscribe_events(self, create_service, tracker, redis):
+        create_service(
             uri_config_key=URI_CONFIG_KEY, events='psubscribe', dbs='*'
         )
         assert tracker.run.call_args_list == [
@@ -273,8 +261,8 @@ class TestListenEvents:
             })
         ]
 
-    def test_listen_event(self, create_dummy_service, tracker, redis):
-        create_dummy_service(
+    def test_listen_event(self, create_service, tracker, redis):
+        create_service(
             uri_config_key=URI_CONFIG_KEY, events='set', dbs='*'
         )
 
@@ -290,9 +278,9 @@ class TestListenEvents:
 
     @pytest.mark.parametrize('events', [['set', 'hset'], ('set', 'hset')])
     def test_listen_multiple_events(
-        self, create_dummy_service, tracker, redis, events
+        self, create_service, tracker, redis, events
     ):
-        create_dummy_service(
+        create_service(
             uri_config_key=URI_CONFIG_KEY, events=events, dbs='*'
         )
 
@@ -316,8 +304,8 @@ class TestListenEvents:
             'data': 'one',
         })
 
-    def test_ignores_other_events(self, create_dummy_service, tracker, redis):
-        create_dummy_service(
+    def test_ignores_other_events(self, create_service, tracker, redis):
+        create_service(
             uri_config_key=URI_CONFIG_KEY, events='hset', dbs='*'
         )
         tracker.run.reset_mock()
@@ -330,8 +318,8 @@ class TestListenEvents:
 
 class TestListenKeys:
 
-    def test_subscribe_events(self, create_dummy_service, tracker, redis):
-        create_dummy_service(
+    def test_subscribe_events(self, create_service, tracker, redis):
+        create_service(
             uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*'
         )
         assert tracker.run.call_args_list == [
@@ -343,8 +331,8 @@ class TestListenKeys:
             })
         ]
 
-    def test_listen_key(self, create_dummy_service, tracker, redis):
-        create_dummy_service(
+    def test_listen_key(self, create_service, tracker, redis):
+        create_service(
             uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*'
         )
 
@@ -359,10 +347,8 @@ class TestListenKeys:
         })
 
     @pytest.mark.parametrize('keys', [['foo', 'bar'], ('foo', 'bar')])
-    def test_listen_multiple_keys(
-        self, create_dummy_service, tracker, redis, keys
-    ):
-        create_dummy_service(
+    def test_listen_multiple_keys(self, create_service, tracker, redis, keys):
+        create_service(
             uri_config_key=URI_CONFIG_KEY, keys=keys, dbs='*'
         )
 
@@ -386,8 +372,8 @@ class TestListenKeys:
             'data': 'set',
         })
 
-    def test_ignores_other_keys(self, create_dummy_service, tracker, redis):
-        create_dummy_service(
+    def test_ignores_other_keys(self, create_service, tracker, redis):
+        create_service(
             uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*'
         )
         tracker.run.reset_mock()
@@ -410,8 +396,8 @@ class TestListenDB:
         client.flushall()
         return client
 
-    def test_subscribes_to_db_from_uri(self, create_dummy_service, tracker):
-        create_dummy_service(
+    def test_subscribes_to_db_from_uri(self, create_service, tracker):
+        create_service(
             uri_config_key=URI_CONFIG_KEY, keys='*', events='*'
         )
         assert tracker.run.call_args_list == [
@@ -429,8 +415,8 @@ class TestListenDB:
             }),
         ]
 
-    def test_subscribe_events(self, create_dummy_service, tracker):
-        create_dummy_service(
+    def test_subscribe_events(self, create_service, tracker):
+        create_service(
             uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1
         )
         assert tracker.run.call_args_list == [
@@ -448,8 +434,8 @@ class TestListenDB:
             }),
         ]
 
-    def test_listen_db(self, create_dummy_service, tracker, redis_db_1):
-        create_dummy_service(
+    def test_listen_db(self, create_service, tracker, redis_db_1):
+        create_service(
             uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1
         )
 
@@ -475,9 +461,9 @@ class TestListenDB:
         )
 
     def test_listen_multiple_dbs(
-        self, create_dummy_service, tracker, redis, redis_db_1
+        self, create_service, tracker, redis, redis_db_1
     ):
-        create_dummy_service(
+        create_service(
             uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=[0, 1]
         )
 
@@ -523,10 +509,8 @@ class TestListenDB:
             ]
         )
 
-    def test_ignores_other_dbs(
-        self, create_dummy_service, tracker, redis_db_1
-    ):
-        create_dummy_service(
+    def test_ignores_other_dbs(self, create_service, tracker, redis_db_1):
+        create_service(
             uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=0
         )
         tracker.run.reset_mock()
