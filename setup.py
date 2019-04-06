@@ -21,7 +21,7 @@ setup(
     install_requires=['nameko>=2.6', 'redis>=2.10.5'],
     extras_require={
         'dev': [
-            'pytest==4.3.1',
+            'pytest==4.4.0',
             'coverage==4.5.3',
             'flake8',
             'restructuredtext-lint',
