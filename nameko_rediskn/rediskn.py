@@ -11,8 +11,13 @@ REDIS_OPTIONS = {'encoding': 'utf-8', 'decode_responses': True}
 
 NOTIFICATIONS_SETTING_KEY = 'notify-keyspace-events'
 """
-The settings key should be a string consisting of options. Available options
-are:
+Configuration parameter used to enable notifications.
+
+By default, keyspace events notifications are disabled. Setting this parameter
+to the empty string also disables notifications.
+
+To enable them, a non-empty string is used, composed of multiple characters
+from this table:
 
 K     Keyspace events, published with __keyspace@<db>__ prefix.
 E     Keyevent events, published with __keyevent@<db>__ prefix.
@@ -26,24 +31,15 @@ x     Expired events (events generated every time a key expires)
 e     Evicted events (events generated when a key is evicted for maxmemory)
 A     Alias for g$lshzxe, so that the "AKE" string means all the events.
 
-NOTE: this is set on the server, so it's best to set it once when starting the
-server instance, as setting it in one client affects all other clients.
-However, if this entrypoint finds this setting in the container config it
-applies it.
+NOTE: it is recomended to set it on the server (`redis.conf`), as setting it in
+one of the clients (via the CONFIG SET) also affects the rest of them.
 """
 
 KEYEVENT_TEMPLATE = '__keyevent@{db}__:{event}'
-"""
-Keyevent event notifications are received on events. The event is part of the
-subscription channel, and the key the event refers to is part of the message
-data.
-"""
+"""Key-event pattern template."""
 
 KEYSPACE_TEMPLATE = '__keyspace@{db}__:{key}'
-"""
-Keyspace event notifications are received on keys. The key is part of the
-subscription channel, and the event on the key is part of the message data.
-"""
+"""Key-space pattern template."""
 
 REDIS_PMESSAGE_TYPE = 'pmessage'
 """Pattern-matching subscription message type."""
@@ -56,12 +52,57 @@ class RedisKNEntrypoint(Entrypoint):
 
     """Redis keyspace notifications entrypoint.
 
-    Key-space notifications and key-event notification as documented here:
-    https://redis.io/topics/notifications
+    Key-space notifications and key-event notification as documented here
+    https://redis.io/topics/notifications and based on Pub/Sub
+    https://redis.io/topics/pubsub
 
-    Usage example:
+    When a Redis event is received then the decorated method is called with a
+    single argument, the received `message`, which is a dictionary with the
+    following data:
 
-        from nameko_rediskn import rediskn
+        `type`: message type.
+
+            - `pmessage` for messages received as a result of pattern matching.
+            - `psubscribe` for subscription events (subscription events are
+              received when the entrypoint initializes).
+
+        `pattern`: the original pattern matched.
+
+        `channel`: the name of the originating channel.
+
+        `data`: message payload.
+
+            - The Key-space channel receives the name of the event.
+            - The Key-event channel receives the name of the key.
+
+    The originating channel has the following format:
+
+        __<subscription type>@<db>__:<event suffix>
+
+    where:
+
+        - `subscription type` is either `keyspace` or `keyevent`.
+        - `db` is the Redis database the event comes from.
+        - If the `subscription type` is `keyevent`, then the `event suffix` is
+          the event type (`set`, `hset`, `expire`, etc.). If the
+          `subscription type` is `keyspace`, then the `event suffix` is the key
+          for which the event happened.
+
+    The subscription pattern has the same format, but it displays the original
+    pattern that matched.
+
+    Message example:
+
+        {
+            'type': 'pmessage',
+            'pattern': '__keyevent@*__:*',
+            'channel': '__keyevent@0__:expired',
+            'data': 'foo',
+        }
+
+    Code example:
+
+        from nameko_rediskn import rediskn, REDIS_PMESSAGE_TYPE
 
 
         class MyService:
@@ -76,6 +117,9 @@ class RedisKNEntrypoint(Entrypoint):
                     message (dict): notification message formed of `type`,
                     `pattern`, `channel` and `data`.
                 '''
+                if message['type'] != REDIS_PMESSAGE_TYPE:
+                    return
+
                 event_type = message['data']
                 if event_type != 'expired':
                     return
@@ -88,13 +132,13 @@ class RedisKNEntrypoint(Entrypoint):
     def __init__(
         self, uri_config_key, events=None, keys=None, dbs=None, **kwargs
     ):
-        """Initialize the notification events settings.
+        """Initialize the entrypoint.
 
         Args:
-            uri_config_key (str): Redis URI config key
-            events (str or list(str)): One or more events to subscribe to
-            keys (str or list(str)): One or more keys to subscribe to
-            dbs (str or list(str)): One or more redis dbs to subscribe to
+            uri_config_key (str): Redis URI config key.
+            events (str or list(str)): one or more events to subscribe to.
+            keys (str or list(str)): one or more keys to subscribe to.
+            dbs (str or list(str)): one or more DBs to subscribe to.
         """
         self.uri_config_key = uri_config_key
 
@@ -145,32 +189,7 @@ class RedisKNEntrypoint(Entrypoint):
         super().kill()
 
     def _run(self):
-        """Run the main loop which listens for subscription events.
-
-        When an event is received, the decorated method is called with a
-        single argument, the received message, which is a dictionary with the
-        following data:
-
-        `data`: the key for `keyevent` notifications or the event for
-                `keyspace` notifications
-
-        `type`: "pmessage" for simple events, "psubscribe" for subscription
-                events (subscription events are received when the entrypoint
-                initializes)
-
-        `pattern`: The subscription pattern
-
-        `channel`: The subscription channel
-
-        The subscription channel has the following format:
-
-            __<subscription type>@<db>__:<event suffix>
-
-        `db` is the redis database the event comes from. If the subscription
-        type is `keyevent`, then the event suffix is the event type (set, hset,
-        expire, etc.). If the subscription type is `keyspace`, then the event
-        suffix is the key for which the event happened.
-        """
+        """Run the main loop which listens for subscription events."""
         self._create_client()
         pubsub = self._subscribe()
 
