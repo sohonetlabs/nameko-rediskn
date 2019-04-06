@@ -27,7 +27,7 @@ def create_service(container_factory, config, tracker):
 
             @rediskn.subscribe(**kwargs)
             def handler(self, message):
-                tracker.run(message)
+                tracker(message)
 
         ServiceMeta = namedtuple('ServiceMeta', ['container'])
         container = container_factory(DummyService, config)
@@ -179,7 +179,7 @@ class TestListenAll:
 
     @pytest.mark.usefixtures('service')
     def test_subscribe_events(self, tracker, redis):
-        assert tracker.run.call_args_list == [
+        assert tracker.call_args_list == [
             call(
                 {
                     'data': 1,
@@ -199,7 +199,7 @@ class TestListenAll:
         ]
 
     @pytest.mark.parametrize(
-        'action,args,event_type',
+        'action, args, event_type',
         [
             ('set', ('foo', 'bar'), 'set'),
             ('hset', ('foo', 'bar', 'baz'), 'hset'),
@@ -215,7 +215,7 @@ class TestListenAll:
         key = args[0]
 
         assert_items_equal(
-            tracker.run.call_args_list[-2:],
+            tracker.call_args_list[-2:],
             [
                 call(
                     {
@@ -243,7 +243,7 @@ class TestListenAll:
         sleep(TIME_SLEEP)
 
         assert_items_equal(
-            tracker.run.call_args_list[-2:],
+            tracker.call_args_list[-2:],
             [
                 call(
                     {
@@ -272,7 +272,7 @@ class TestListenAll:
         sleep(TIME_SLEEP)
 
         assert_items_equal(
-            tracker.run.call_args_list[-2:],
+            tracker.call_args_list[-2:],
             [
                 call(
                     {
@@ -294,7 +294,7 @@ class TestListenAll:
         )
 
     @pytest.mark.parametrize(
-        'action,ttl,wait_time', [('expire', 1, 1.1), ('pexpire', 100, 0.2)]
+        'action, ttl, wait_time', [('expire', 1, 1.1), ('pexpire', 100, 0.2)]
     )
     @pytest.mark.usefixtures('service')
     def test_expire(self, tracker, redis, action, ttl, wait_time):
@@ -303,7 +303,7 @@ class TestListenAll:
         method('foo', ttl)
         sleep(TIME_SLEEP)
         assert_items_equal(
-            tracker.run.call_args_list[-2:],
+            tracker.call_args_list[-2:],
             [
                 call(
                     {
@@ -327,7 +327,7 @@ class TestListenAll:
         sleep(wait_time)
 
         assert_items_equal(
-            tracker.run.call_args_list[-2:],
+            tracker.call_args_list[-2:],
             [
                 call(
                     {
@@ -355,7 +355,7 @@ class TestListenEvents:
         create_service(
             uri_config_key=URI_CONFIG_KEY, events='psubscribe', dbs='*'
         )
-        assert tracker.run.call_args_list == [
+        assert tracker.call_args_list == [
             call(
                 {
                     'type': 'psubscribe',
@@ -372,7 +372,7 @@ class TestListenEvents:
         redis.set('foo', 'bar')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list[-1] == call(
+        assert tracker.call_args_list[-1] == call(
             {
                 'type': 'pmessage',
                 'pattern': '__keyevent@*__:set',
@@ -390,7 +390,7 @@ class TestListenEvents:
         redis.set('foo', 'bar')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list[-1] == call(
+        assert tracker.call_args_list[-1] == call(
             {
                 'type': 'pmessage',
                 'pattern': '__keyevent@*__:set',
@@ -402,7 +402,7 @@ class TestListenEvents:
         redis.hset('one', 'two', 'three')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list[-1] == call(
+        assert tracker.call_args_list[-1] == call(
             {
                 'type': 'pmessage',
                 'pattern': '__keyevent@*__:hset',
@@ -413,19 +413,19 @@ class TestListenEvents:
 
     def test_ignores_other_events(self, create_service, tracker, redis):
         create_service(uri_config_key=URI_CONFIG_KEY, events='hset', dbs='*')
-        tracker.run.reset_mock()
+        tracker.reset_mock()
 
         redis.set('foo', 'bar')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list == []
+        assert tracker.call_args_list == []
 
 
 class TestListenKeys:
 
     def test_subscribe_events(self, create_service, tracker, redis):
         create_service(uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*')
-        assert tracker.run.call_args_list == [
+        assert tracker.call_args_list == [
             call(
                 {
                     'type': 'psubscribe',
@@ -442,7 +442,7 @@ class TestListenKeys:
         redis.set('foo', 'bar')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list[-1] == call(
+        assert tracker.call_args_list[-1] == call(
             {
                 'type': 'pmessage',
                 'pattern': '__keyspace@*__:foo',
@@ -458,7 +458,7 @@ class TestListenKeys:
         redis.set('foo', '1')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list[-1] == call(
+        assert tracker.call_args_list[-1] == call(
             {
                 'type': 'pmessage',
                 'pattern': '__keyspace@*__:foo',
@@ -470,7 +470,7 @@ class TestListenKeys:
         redis.set('bar', '2')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list[-1] == call(
+        assert tracker.call_args_list[-1] == call(
             {
                 'type': 'pmessage',
                 'pattern': '__keyspace@*__:bar',
@@ -481,12 +481,12 @@ class TestListenKeys:
 
     def test_ignores_other_keys(self, create_service, tracker, redis):
         create_service(uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*')
-        tracker.run.reset_mock()
+        tracker.reset_mock()
 
         redis.set('bar', '2')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list == []
+        assert tracker.call_args_list == []
 
 
 class TestListenDB:
@@ -503,7 +503,7 @@ class TestListenDB:
 
     def test_subscribes_to_db_from_uri(self, create_service, tracker):
         create_service(uri_config_key=URI_CONFIG_KEY, keys='*', events='*')
-        assert tracker.run.call_args_list == [
+        assert tracker.call_args_list == [
             call(
                 {
                     'type': 'psubscribe',
@@ -526,7 +526,7 @@ class TestListenDB:
         create_service(
             uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1
         )
-        assert tracker.run.call_args_list == [
+        assert tracker.call_args_list == [
             call(
                 {
                     'type': 'psubscribe',
@@ -554,7 +554,7 @@ class TestListenDB:
         sleep(TIME_SLEEP)
 
         assert_items_equal(
-            tracker.run.call_args_list[-2:],
+            tracker.call_args_list[-2:],
             [
                 call(
                     {
@@ -586,7 +586,7 @@ class TestListenDB:
         sleep(TIME_SLEEP)
 
         assert_items_equal(
-            tracker.run.call_args_list[-2:],
+            tracker.call_args_list[-2:],
             [
                 call(
                     {
@@ -611,7 +611,7 @@ class TestListenDB:
         sleep(TIME_SLEEP)
 
         assert_items_equal(
-            tracker.run.call_args_list[-2:],
+            tracker.call_args_list[-2:],
             [
                 call(
                     {
@@ -636,9 +636,9 @@ class TestListenDB:
         create_service(
             uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=0
         )
-        tracker.run.reset_mock()
+        tracker.reset_mock()
 
         redis_db_1.set('foo', 'bar')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list == []
+        assert tracker.call_args_list == []
