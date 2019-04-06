@@ -45,6 +45,9 @@ Keyspace event notifications are received on keys. The key is part of the
 subscription channel, and the event on the key is part of the message data.
 """
 
+REDIS_PMESSAGE_TYPE = 'pmessage'
+"""Pattern-matching subscription message type."""
+
 
 log = logging.getLogger()
 

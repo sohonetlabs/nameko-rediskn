@@ -4,7 +4,14 @@ import pytest
 from eventlet import sleep
 from nameko.exceptions import ConfigurationError
 
+from nameko_rediskn import REDIS_PMESSAGE_TYPE
 from test import assert_items_equal, TIME_SLEEP, URI_CONFIG_KEY
+
+
+class TestPublicConstants:
+
+    def test_value(self):
+        assert REDIS_PMESSAGE_TYPE == 'pmessage'
 
 
 class TestConfig:
