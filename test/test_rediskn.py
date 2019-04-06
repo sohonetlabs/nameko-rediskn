@@ -185,7 +185,7 @@ class TestListenAll:
         )
 
     @pytest.mark.usefixtures('service')
-    def test_subscribe_events(self, tracker, redis):
+    def test_subscribe_events(self, tracker):
         assert_items_equal(
             tracker.call_args_list,
             [
@@ -473,7 +473,7 @@ class TestListenAll:
 
 class TestListenEvents:
 
-    def test_subscribe_events(self, create_service, tracker, redis):
+    def test_subscribe_events(self, create_service, tracker):
         create_service(
             uri_config_key=URI_CONFIG_KEY, events='psubscribe', dbs='*'
         )
@@ -580,7 +580,7 @@ class TestListenEvents:
 
 class TestListenKeys:
 
-    def test_subscribe_events(self, create_service, tracker, redis):
+    def test_subscribe_events(self, create_service, tracker):
         create_service(uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*')
         assert tracker.call_args_list == [
             call(
