@@ -1,4 +1,5 @@
 language: python
+python: 3.7
 
 dist: xenial
 
@@ -12,7 +13,7 @@ install:
 matrix:
   include:
     - stage: test
-    - python: 3.5
+      python: 3.5
       env: TOX_ENV="py35-nameko{2.11,2.12,latest}-redis2.10"
     - python: 3.5
       env: TOX_ENV="py35-nameko{2.11,2.12,latest}-redis3.0"
