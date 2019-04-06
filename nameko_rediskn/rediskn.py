@@ -53,12 +53,8 @@ class RedisKNEntrypoint(Entrypoint):
 
     """Redis keyspace notifications entrypoint.
 
+    Key-space notifications and key-event notification as documented here:
     https://redis.io/topics/notifications
-
-    Event examples:
-
-        - `expire` events fire when we call the `EXPIRE` commands
-        - `expired` events fire when a key gets deleted due to expiration
 
     Usage example:
 
@@ -71,6 +67,12 @@ class RedisKNEntrypoint(Entrypoint):
 
             @rediskn.subscribe(uri_config_key='MY_REDIS', keys='foo/bar-*')
             def subscriber(self, message):
+                '''Notifications subscriber entrypoint.
+
+                Args:
+                    message (dict): notification message formed of `type`,
+                    `pattern`, `channel` and `data`.
+                '''
                 event_type = message['data']
                 if event_type != 'expired':
                     return
@@ -152,6 +154,7 @@ class RedisKNEntrypoint(Entrypoint):
         `type`: "pmessage" for simple events, "psubscribe" for subscription
                 events (subscription events are received when the entrypoint
                 initializes)
+
         `pattern`: The subscription pattern
 
         `channel`: The subscription channel
@@ -162,7 +165,7 @@ class RedisKNEntrypoint(Entrypoint):
 
         `db` is the redis database the event comes from. If the subscription
         type is `keyevent`, then the event suffix is the event type (set, hset,
-        expire etc.). If the subscription type is `keyspace`, then the event
+        expire, etc.). If the subscription type is `keyspace`, then the event
         suffix is the key for which the event happened.
         """
         self._create_client()
