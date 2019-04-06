@@ -1,5 +1,5 @@
 from collections import namedtuple
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 from eventlet import sleep
@@ -69,3 +69,9 @@ def create_service(container_factory, config, tracker):
         return ServiceMeta(container)
 
     return create
+
+
+@pytest.fixture
+def log_mock():
+    with patch('nameko_rediskn.rediskn.log') as log_mock:
+        yield log_mock

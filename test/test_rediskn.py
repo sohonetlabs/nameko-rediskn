@@ -66,12 +66,21 @@ class TestSubscribeAPI:
         with pytest.raises(TypeError):
             create_service(events='*', keys='*', dbs=[1])
 
-    def test_raises_if_missing_arguments(self, create_service):
+    def test_raises_if_missing_arguments(self, create_service, log_mock):
         with pytest.raises(ConfigurationError):
             create_service(uri_config_key=URI_CONFIG_KEY)
 
+        assert log_mock.error.call_args_list == [
+            call('Provide either `events` or `keys` to get notifications')
+        ]
+        log_mock.error.reset_mock()
+
         with pytest.raises(ConfigurationError):
             create_service(uri_config_key=URI_CONFIG_KEY, dbs=[1])
+
+        assert log_mock.error.call_args_list == [
+            call('Provide either `events` or `keys` to get notifications')
+        ]
 
 
 class TestContainerStop:
@@ -142,6 +151,29 @@ class TestContainerKill:
         entrypoint = next(iter(service.container.entrypoints))
         assert entrypoint._thread is None
         assert entrypoint.client is None
+
+
+class TestLogInformation:
+
+    def test_log_start_listening_information(self, create_service, log_mock):
+        create_service(
+            uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*'
+        )
+        assert log_mock.info.call_args_list == [
+            call('Started listening to Redis keyspace notifications')
+        ]
+
+    def test_log_stop_listening_information(self, create_service, log_mock):
+        service = create_service(
+            uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*'
+        )
+        log_mock.info.reset_mock()
+
+        service.container.kill()
+
+        assert log_mock.info.call_args_list == [
+            call('Stopped listening to Redis keyspace notifications')
+        ]
 
 
 class TestListenAll:

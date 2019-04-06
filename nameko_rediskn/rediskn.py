@@ -193,14 +193,14 @@ class RedisKNEntrypoint(Entrypoint):
         self._create_client()
         pubsub = self._subscribe()
 
-        log.info('Started listening to redis keyspace notifications')
+        log.info('Started listening to Redis keyspace notifications')
 
         try:
             for message in pubsub.listen():
                 self.container.spawn_worker(self, [message], {})
         finally:
             pubsub.close()
-            log.info('Stopped listening to redis keyspace notifications')
+            log.info('Stopped listening to Redis keyspace notifications')
 
     def _create_client(self):
         client = StrictRedis.from_url(self._redis_uri, **REDIS_OPTIONS)
