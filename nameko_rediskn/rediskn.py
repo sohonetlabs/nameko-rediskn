@@ -103,13 +103,6 @@ class RedisKNEntrypoint(Entrypoint):
         else:
             self.keys = _to_list(keys)
 
-        if not self.events and not self.keys:
-            error_message = (
-                'Provide either `events` or `keys` to get notifications'
-            )
-            log.error(error_message)
-            raise ConfigurationError(error_message)
-
         if dbs is None:
             self.dbs = None
         else:
@@ -120,11 +113,17 @@ class RedisKNEntrypoint(Entrypoint):
         super().__init__(**kwargs)
 
     def setup(self):
+        if not self.events and not self.keys:
+            error_message = (
+                'Provide either `events` or `keys` to get notifications'
+            )
+            log.error(error_message)
+            raise ConfigurationError(error_message)
+
         self._redis_uri = self.container.config['REDIS_URIS'][
             self.uri_config_key
         ]
         redis_config = self.container.config.get('REDIS', {})
-        # This should ideally be set in redis.conf
         self._notification_events = redis_config.get('NOTIFICATION_EVENTS')
         super().setup()
 
@@ -133,17 +132,11 @@ class RedisKNEntrypoint(Entrypoint):
         super().start()
 
     def stop(self):
-        if self._thread is not None:
-            self._thread.kill()
-            self._thread = None
-        self.client = None
+        self._kill_thread()
         super().stop()
 
     def kill(self):
-        if self._thread is not None:
-            self._thread.kill()
-            self._thread = None
-        self.client = None
+        self._kill_thread()
         super().kill()
 
     def _run(self):
@@ -193,6 +186,7 @@ class RedisKNEntrypoint(Entrypoint):
             self.dbs = [connected_db]
 
         if self._notification_events is not None:
+            # This should ideally be set in redis.conf
             client.config_set(
                 NOTIFICATIONS_SETTING_KEY, self._notification_events
             )
@@ -218,6 +212,12 @@ class RedisKNEntrypoint(Entrypoint):
             pubsub.psubscribe(pattern)
 
         return pubsub
+
+    def _kill_thread(self):
+        if self._thread is not None:
+            self._thread.kill()
+            self._thread = None
+        self.client = None
 
 
 def _to_list(arg):
