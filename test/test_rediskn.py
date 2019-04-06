@@ -46,8 +46,11 @@ class TestConfig:
 
         with pytest.raises(KeyError) as exc:
             create_service(
-                config=config, uri_config_key=URI_CONFIG_KEY, events='*',
-                keys='*', dbs='*'
+                config=config,
+                uri_config_key=URI_CONFIG_KEY,
+                events='*',
+                keys='*',
+                dbs='*',
             )
 
         assert exc.value.args[0] == 'TEST_KEY'
@@ -105,9 +108,7 @@ class TestContainerStop:
             thread_mock = MagicMock()
             thread_mock.kill.return_value = MagicMock()
             spawn_managed_thread.return_value = thread_mock
-            service = create_service(
-                uri_config_key=URI_CONFIG_KEY, events='*'
-            )
+            service = create_service(uri_config_key=URI_CONFIG_KEY, events='*')
             service.container.stop()
 
         assert thread_mock.kill.call_args_list == [call()]
@@ -123,9 +124,7 @@ class TestContainerStop:
             thread_mock = MagicMock()
             thread_mock.kill.return_value = MagicMock()
             spawn_managed_thread.return_value = None
-            service = create_service(
-                uri_config_key=URI_CONFIG_KEY, events='*'
-            )
+            service = create_service(uri_config_key=URI_CONFIG_KEY, events='*')
             service.container.stop()
 
         assert thread_mock.kill.call_args_list == []
@@ -144,9 +143,7 @@ class TestContainerKill:
             thread_mock = MagicMock()
             thread_mock.kill.return_value = MagicMock()
             spawn_managed_thread.return_value = thread_mock
-            service = create_service(
-                uri_config_key=URI_CONFIG_KEY, events='*'
-            )
+            service = create_service(uri_config_key=URI_CONFIG_KEY, events='*')
             service.container.kill()
 
         assert thread_mock.kill.call_args_list == [call()]
@@ -162,9 +159,7 @@ class TestContainerKill:
             thread_mock = MagicMock()
             thread_mock.kill.return_value = MagicMock()
             spawn_managed_thread.return_value = None
-            service = create_service(
-                uri_config_key=URI_CONFIG_KEY, events='*'
-            )
+            service = create_service(uri_config_key=URI_CONFIG_KEY, events='*')
             service.container.kill()
 
         assert thread_mock.kill.call_args_list == []
@@ -185,25 +180,32 @@ class TestListenAll:
     @pytest.mark.usefixtures('service')
     def test_subscribe_events(self, tracker, redis):
         assert tracker.run.call_args_list == [
-            call({
-                'data': 1,
-                'type': 'psubscribe',
-                'pattern': None,
-                'channel': '__keyevent@*__:*'
-            }),
-            call({
-                'data': 2,
-                'type': 'psubscribe',
-                'pattern': None,
-                'channel': '__keyspace@*__:*'
-            }),
+            call(
+                {
+                    'data': 1,
+                    'type': 'psubscribe',
+                    'pattern': None,
+                    'channel': '__keyevent@*__:*',
+                }
+            ),
+            call(
+                {
+                    'data': 2,
+                    'type': 'psubscribe',
+                    'pattern': None,
+                    'channel': '__keyspace@*__:*',
+                }
+            ),
         ]
 
-    @pytest.mark.parametrize('action,args,event_type', [
-        ('set', ('foo', 'bar'), 'set'),
-        ('hset', ('foo', 'bar', 'baz'), 'hset'),
-        ('hmset', ('foo', {'bar': 'baz'}), 'hset'),
-    ])
+    @pytest.mark.parametrize(
+        'action,args,event_type',
+        [
+            ('set', ('foo', 'bar'), 'set'),
+            ('hset', ('foo', 'bar', 'baz'), 'hset'),
+            ('hmset', ('foo', {'bar': 'baz'}), 'hset'),
+        ],
+    )
     @pytest.mark.usefixtures('service')
     def test_simple_events(self, tracker, redis, action, args, event_type):
         method = getattr(redis, action)
@@ -215,19 +217,23 @@ class TestListenAll:
         assert_items_equal(
             tracker.run.call_args_list[-2:],
             [
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyspace@*__:*',
-                    'channel': '__keyspace@0__:{}'.format(key),
-                    'data': event_type,
-                }),
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyevent@*__:*',
-                    'channel': '__keyevent@0__:{}'.format(event_type),
-                    'data': key,
-                })
-            ]
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyspace@*__:*',
+                        'channel': '__keyspace@0__:{}'.format(key),
+                        'data': event_type,
+                    }
+                ),
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyevent@*__:*',
+                        'channel': '__keyevent@0__:{}'.format(event_type),
+                        'data': key,
+                    }
+                ),
+            ],
         )
 
     @pytest.mark.usefixtures('service')
@@ -239,22 +245,26 @@ class TestListenAll:
         assert_items_equal(
             tracker.run.call_args_list[-2:],
             [
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyspace@*__:*',
-                    'channel': '__keyspace@0__:foo',
-                    'data': 'del',
-                }),
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyevent@*__:*',
-                    'channel': '__keyevent@0__:del',
-                    'data': 'foo',
-                })
-            ]
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyspace@*__:*',
+                        'channel': '__keyspace@0__:foo',
+                        'data': 'del',
+                    }
+                ),
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyevent@*__:*',
+                        'channel': '__keyevent@0__:del',
+                        'data': 'foo',
+                    }
+                ),
+            ],
         )
 
-    @pytest.mark.parametrize('keys', [('one', ), ('one', 'two')])
+    @pytest.mark.parametrize('keys', [('one',), ('one', 'two')])
     @pytest.mark.usefixtures('service')
     def test_hdel(self, tracker, redis, keys):
         redis.hmset('foo', {'one': '1', 'two': '2', 'three': '3'})
@@ -264,25 +274,28 @@ class TestListenAll:
         assert_items_equal(
             tracker.run.call_args_list[-2:],
             [
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyspace@*__:*',
-                    'channel': '__keyspace@0__:foo',
-                    'data': 'hdel',
-                }),
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyevent@*__:*',
-                    'channel': '__keyevent@0__:hdel',
-                    'data': 'foo',
-                })
-            ]
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyspace@*__:*',
+                        'channel': '__keyspace@0__:foo',
+                        'data': 'hdel',
+                    }
+                ),
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyevent@*__:*',
+                        'channel': '__keyevent@0__:hdel',
+                        'data': 'foo',
+                    }
+                ),
+            ],
         )
 
-    @pytest.mark.parametrize('action,ttl,wait_time', [
-        ('expire', 1, 1.1),
-        ('pexpire', 100, 0.2),
-    ])
+    @pytest.mark.parametrize(
+        'action,ttl,wait_time', [('expire', 1, 1.1), ('pexpire', 100, 0.2)]
+    )
     @pytest.mark.usefixtures('service')
     def test_expire(self, tracker, redis, action, ttl, wait_time):
         redis.set('foo', 'bar')
@@ -292,19 +305,23 @@ class TestListenAll:
         assert_items_equal(
             tracker.run.call_args_list[-2:],
             [
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyspace@*__:*',
-                    'channel': '__keyspace@0__:foo',
-                    'data': 'expire',
-                }),
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyevent@*__:*',
-                    'channel': '__keyevent@0__:expire',
-                    'data': 'foo',
-                })
-            ]
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyspace@*__:*',
+                        'channel': '__keyspace@0__:foo',
+                        'data': 'expire',
+                    }
+                ),
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyevent@*__:*',
+                        'channel': '__keyevent@0__:expire',
+                        'data': 'foo',
+                    }
+                ),
+            ],
         )
 
         sleep(wait_time)
@@ -312,19 +329,23 @@ class TestListenAll:
         assert_items_equal(
             tracker.run.call_args_list[-2:],
             [
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyspace@*__:*',
-                    'channel': '__keyspace@0__:foo',
-                    'data': 'expired',
-                }),
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyevent@*__:*',
-                    'channel': '__keyevent@0__:expired',
-                    'data': 'foo',
-                })
-            ]
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyspace@*__:*',
+                        'channel': '__keyspace@0__:foo',
+                        'data': 'expired',
+                    }
+                ),
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyevent@*__:*',
+                        'channel': '__keyevent@0__:expired',
+                        'data': 'foo',
+                    }
+                ),
+            ],
         )
 
 
@@ -335,61 +356,63 @@ class TestListenEvents:
             uri_config_key=URI_CONFIG_KEY, events='psubscribe', dbs='*'
         )
         assert tracker.run.call_args_list == [
-            call({
-                'type': 'psubscribe',
-                'pattern': None,
-                'channel': '__keyevent@*__:psubscribe',
-                'data': 1,
-            })
+            call(
+                {
+                    'type': 'psubscribe',
+                    'pattern': None,
+                    'channel': '__keyevent@*__:psubscribe',
+                    'data': 1,
+                }
+            )
         ]
 
     def test_listen_event(self, create_service, tracker, redis):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, events='set', dbs='*'
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, events='set', dbs='*')
 
         redis.set('foo', 'bar')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list[-1] == call({
-            'type': 'pmessage',
-            'pattern': '__keyevent@*__:set',
-            'channel': '__keyevent@0__:set',
-            'data': 'foo',
-        })
+        assert tracker.run.call_args_list[-1] == call(
+            {
+                'type': 'pmessage',
+                'pattern': '__keyevent@*__:set',
+                'channel': '__keyevent@0__:set',
+                'data': 'foo',
+            }
+        )
 
     @pytest.mark.parametrize('events', [['set', 'hset'], ('set', 'hset')])
     def test_listen_multiple_events(
         self, create_service, tracker, redis, events
     ):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, events=events, dbs='*'
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, events=events, dbs='*')
 
         redis.set('foo', 'bar')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list[-1] == call({
-            'type': 'pmessage',
-            'pattern': '__keyevent@*__:set',
-            'channel': '__keyevent@0__:set',
-            'data': 'foo',
-        })
+        assert tracker.run.call_args_list[-1] == call(
+            {
+                'type': 'pmessage',
+                'pattern': '__keyevent@*__:set',
+                'channel': '__keyevent@0__:set',
+                'data': 'foo',
+            }
+        )
 
         redis.hset('one', 'two', 'three')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list[-1] == call({
-            'type': 'pmessage',
-            'pattern': '__keyevent@*__:hset',
-            'channel': '__keyevent@0__:hset',
-            'data': 'one',
-        })
+        assert tracker.run.call_args_list[-1] == call(
+            {
+                'type': 'pmessage',
+                'pattern': '__keyevent@*__:hset',
+                'channel': '__keyevent@0__:hset',
+                'data': 'one',
+            }
+        )
 
     def test_ignores_other_events(self, create_service, tracker, redis):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, events='hset', dbs='*'
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, events='hset', dbs='*')
         tracker.run.reset_mock()
 
         redis.set('foo', 'bar')
@@ -401,63 +424,63 @@ class TestListenEvents:
 class TestListenKeys:
 
     def test_subscribe_events(self, create_service, tracker, redis):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*'
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*')
         assert tracker.run.call_args_list == [
-            call({
-                'type': 'psubscribe',
-                'pattern': None,
-                'channel': '__keyspace@*__:foo',
-                'data': 1,
-            })
+            call(
+                {
+                    'type': 'psubscribe',
+                    'pattern': None,
+                    'channel': '__keyspace@*__:foo',
+                    'data': 1,
+                }
+            )
         ]
 
     def test_listen_key(self, create_service, tracker, redis):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*'
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*')
 
         redis.set('foo', 'bar')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list[-1] == call({
-            'type': 'pmessage',
-            'pattern': '__keyspace@*__:foo',
-            'channel': '__keyspace@0__:foo',
-            'data': 'set',
-        })
+        assert tracker.run.call_args_list[-1] == call(
+            {
+                'type': 'pmessage',
+                'pattern': '__keyspace@*__:foo',
+                'channel': '__keyspace@0__:foo',
+                'data': 'set',
+            }
+        )
 
     @pytest.mark.parametrize('keys', [['foo', 'bar'], ('foo', 'bar')])
     def test_listen_multiple_keys(self, create_service, tracker, redis, keys):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys=keys, dbs='*'
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, keys=keys, dbs='*')
 
         redis.set('foo', '1')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list[-1] == call({
-            'type': 'pmessage',
-            'pattern': '__keyspace@*__:foo',
-            'channel': '__keyspace@0__:foo',
-            'data': 'set',
-        })
+        assert tracker.run.call_args_list[-1] == call(
+            {
+                'type': 'pmessage',
+                'pattern': '__keyspace@*__:foo',
+                'channel': '__keyspace@0__:foo',
+                'data': 'set',
+            }
+        )
 
         redis.set('bar', '2')
         sleep(TIME_SLEEP)
 
-        assert tracker.run.call_args_list[-1] == call({
-            'type': 'pmessage',
-            'pattern': '__keyspace@*__:bar',
-            'channel': '__keyspace@0__:bar',
-            'data': 'set',
-        })
+        assert tracker.run.call_args_list[-1] == call(
+            {
+                'type': 'pmessage',
+                'pattern': '__keyspace@*__:bar',
+                'channel': '__keyspace@0__:bar',
+                'data': 'set',
+            }
+        )
 
     def test_ignores_other_keys(self, create_service, tracker, redis):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*'
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*')
         tracker.run.reset_mock()
 
         redis.set('bar', '2')
@@ -479,22 +502,24 @@ class TestListenDB:
         return client
 
     def test_subscribes_to_db_from_uri(self, create_service, tracker):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys='*', events='*'
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, keys='*', events='*')
         assert tracker.run.call_args_list == [
-            call({
-                'type': 'psubscribe',
-                'pattern': None,
-                'channel': '__keyevent@0__:*',
-                'data': 1,
-            }),
-            call({
-                'type': 'psubscribe',
-                'pattern': None,
-                'channel': '__keyspace@0__:*',
-                'data': 2,
-            }),
+            call(
+                {
+                    'type': 'psubscribe',
+                    'pattern': None,
+                    'channel': '__keyevent@0__:*',
+                    'data': 1,
+                }
+            ),
+            call(
+                {
+                    'type': 'psubscribe',
+                    'pattern': None,
+                    'channel': '__keyspace@0__:*',
+                    'data': 2,
+                }
+            ),
         ]
 
     def test_subscribe_events(self, create_service, tracker):
@@ -502,18 +527,22 @@ class TestListenDB:
             uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1
         )
         assert tracker.run.call_args_list == [
-            call({
-                'type': 'psubscribe',
-                'pattern': None,
-                'channel': '__keyevent@1__:*',
-                'data': 1,
-            }),
-            call({
-                'type': 'psubscribe',
-                'pattern': None,
-                'channel': '__keyspace@1__:*',
-                'data': 2,
-            }),
+            call(
+                {
+                    'type': 'psubscribe',
+                    'pattern': None,
+                    'channel': '__keyevent@1__:*',
+                    'data': 1,
+                }
+            ),
+            call(
+                {
+                    'type': 'psubscribe',
+                    'pattern': None,
+                    'channel': '__keyspace@1__:*',
+                    'data': 2,
+                }
+            ),
         ]
 
     def test_listen_db(self, create_service, tracker, redis_db_1):
@@ -527,19 +556,23 @@ class TestListenDB:
         assert_items_equal(
             tracker.run.call_args_list[-2:],
             [
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyspace@1__:*',
-                    'channel': '__keyspace@1__:foo',
-                    'data': 'set',
-                }),
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyevent@1__:*',
-                    'channel': '__keyevent@1__:set',
-                    'data': 'foo',
-                })
-            ]
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyspace@1__:*',
+                        'channel': '__keyspace@1__:foo',
+                        'data': 'set',
+                    }
+                ),
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyevent@1__:*',
+                        'channel': '__keyevent@1__:set',
+                        'data': 'foo',
+                    }
+                ),
+            ],
         )
 
     def test_listen_multiple_dbs(
@@ -555,19 +588,23 @@ class TestListenDB:
         assert_items_equal(
             tracker.run.call_args_list[-2:],
             [
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyspace@0__:*',
-                    'channel': '__keyspace@0__:foo',
-                    'data': 'set',
-                }),
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyevent@0__:*',
-                    'channel': '__keyevent@0__:set',
-                    'data': 'foo',
-                })
-            ]
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyspace@0__:*',
+                        'channel': '__keyspace@0__:foo',
+                        'data': 'set',
+                    }
+                ),
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyevent@0__:*',
+                        'channel': '__keyevent@0__:set',
+                        'data': 'foo',
+                    }
+                ),
+            ],
         )
 
         redis_db_1.set('bar', '2')
@@ -576,19 +613,23 @@ class TestListenDB:
         assert_items_equal(
             tracker.run.call_args_list[-2:],
             [
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyspace@1__:*',
-                    'channel': '__keyspace@1__:bar',
-                    'data': 'set',
-                }),
-                call({
-                    'type': 'pmessage',
-                    'pattern': '__keyevent@1__:*',
-                    'channel': '__keyevent@1__:set',
-                    'data': 'bar',
-                })
-            ]
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyspace@1__:*',
+                        'channel': '__keyspace@1__:bar',
+                        'data': 'set',
+                    }
+                ),
+                call(
+                    {
+                        'type': 'pmessage',
+                        'pattern': '__keyevent@1__:*',
+                        'channel': '__keyevent@1__:set',
+                        'data': 'bar',
+                    }
+                ),
+            ],
         )
 
     def test_ignores_other_dbs(self, create_service, tracker, redis_db_1):
