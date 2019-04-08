@@ -11,28 +11,17 @@ REDIS_OPTIONS = {'encoding': 'utf-8', 'decode_responses': True}
 
 NOTIFICATIONS_SETTING_KEY = 'notify-keyspace-events'
 """
-Configuration parameter used to enable notifications.
+Configuration parameter used to enable keyspace events notifications.
 
-By default, keyspace events notifications are disabled. Setting this parameter
-to the empty string also disables notifications.
+By default, those notifications are disabled. Setting this parameter to the
+empty string also disables them.
 
-To enable them, a non-empty string is used, composed of multiple characters
-from this table:
+To enable them, a non-empty string must be used. The set of allowed characters
+can be found in the Redis keyspace notifications documentation.
 
-K     Keyspace events, published with __keyspace@<db>__ prefix.
-E     Keyevent events, published with __keyevent@<db>__ prefix.
-g     Generic commands (non-type specific) like DEL, EXPIRE, RENAME, ...
-$     String commands
-l     List commands
-s     Set commands
-h     Hash commands
-z     Sorted set commands
-x     Expired events (events generated every time a key expires)
-e     Evicted events (events generated when a key is evicted for maxmemory)
-A     Alias for g$lshzxe, so that the "AKE" string means all the events.
-
-NOTE: it is recomended to set it on the server (`redis.conf`), as setting it in
-one of the clients (via the CONFIG SET) also affects the rest of them.
+NOTE: it is recomended to set this parameter on the server side (`redis.conf`),
+as setting it in one of the clients (via the CONFIG SET) also affects the rest
+of them.
 """
 
 KEYEVENT_TEMPLATE = '__keyevent@{db}__:{event}'
