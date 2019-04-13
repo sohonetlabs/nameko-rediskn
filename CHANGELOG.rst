@@ -17,7 +17,7 @@ Released 2019-xx-xx
   - Add ability to subscribe to events
   - Add ability to subscribe to keys
   - Add ability to subscribe to databases
-* Support for Python ``3.4``, ``3.5``, ``3.6``, ``3.7`` (#1)
+* Support for Python ``3.5``, ``3.6``, ``3.7`` (#1)
 * Supoort for Nameko ``2.11``, ``2.12`` (#1)
 * Add support for (Python) Redis ``2.10``, ``3.0``, ``3.1``, ``3.2``
   (#1)
