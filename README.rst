@@ -15,7 +15,7 @@ Nameko Redis Keyspace Notifications
 .. image:: https://img.shields.io/pypi/format/nameko-rediskn.svg
     :target: https://pypi.org/project/nameko-rediskn/
 
-.. image:: https://travis-ci.org/sohonetlabs/nameko-rediskn.png?branch=master
+.. image:: https://travis-ci.org/sohonetlabs/nameko-rediskn.svg?branch=master
     :target: https://travis-ci.org/sohonetlabs/nameko-rediskn
 
 
@@ -27,8 +27,8 @@ databases.
 
 Some event examples:
 
-    - ``expire`` events fire for ``EXPIRE`` commands
-    - ``expired`` events fire when a key gets deleted due to expiration
+- ``expire`` events fire for ``EXPIRE`` commands
+- ``expired`` events fire when a key gets deleted due to expiration
 
 Usage example:
 
@@ -51,6 +51,21 @@ Usage example:
 
             # ...
 
+Where ``subscribe`` accepts:
+
+- ``MY_REDIS``, which is the attribute name referring to he Redis URI
+  (see the Configuration_ section below).
+- ``events``, ``keys`` and ``dbs`` as a single value (string) or a
+  list of values to subscribe to. They are all optional but at least one
+  of those arguments must be provided.
+
+**NOTE**: this dependency is not "cluster-aware" and fires on all service
+instances. There are different ways to solve that: using ddebounce_ is
+one of them.
+
+
+Configuration
+-------------
 
 Nameko_ configuration file:
 
@@ -159,3 +174,4 @@ The MIT License. See LICENSE_ for details.
 .. _Nameko Redis: https://github.com/etataurov/nameko-redis
 .. _CHANGELOG: https://github.com/sohonetlabs/nameko-rediskn/blob/master/CHANGELOG.rst
 .. _LICENSE: https://github.com/sohonetlabs/nameko-rediskn/blob/master/LICENSE
+.. _ddebounce: https://github.com/iky/ddebounce
