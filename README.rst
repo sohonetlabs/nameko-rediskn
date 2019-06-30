@@ -34,7 +34,7 @@ Usage example:
 
  .. code-block:: python
 
-    from nameko_rediskn import rediskn
+    from nameko_rediskn import rediskn, REDIS_PMESSAGE_TYPE
 
 
     class MyService:
@@ -43,6 +43,9 @@ Usage example:
 
         @rediskn.subscribe(uri_config_key='MY_REDIS', keys='foo/bar-*')
         def subscriber(self, message):
+            if message['type'] != REDIS_PMESSAGE_TYPE:
+                return
+
             event_type = message['data']
             if event_type != 'expired':
                 return
@@ -58,6 +61,9 @@ Where ``subscribe`` accepts:
 - ``events``, ``keys`` and ``dbs`` as a single value (string) or a
   list of values to subscribe to. They are all optional but at least one
   of those arguments must be provided.
+
+For more information, you can check the documentation of the
+``RedisKNEntrypoint`` entrypoint.
 
 **NOTE**: this dependency is not "cluster-aware" and fires on all service
 instances. There are different ways to solve that: using ddebounce_ is
