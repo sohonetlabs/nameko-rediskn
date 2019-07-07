@@ -384,7 +384,7 @@ class TestListenAll:
         )
 
     @pytest.mark.parametrize(
-        'action, ttl, wait_time', [('expire', 1, 1.1), ('pexpire', 100, 0.2)]
+        'action, ttl, wait_time', [('expire', 1, 1.1), ('pexpire', 1000, 1.1)]
     )
     @pytest.mark.usefixtures('service')
     def test_expire(self, tracker, redis, action, ttl, wait_time):
