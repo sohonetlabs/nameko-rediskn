@@ -151,7 +151,7 @@ class RedisKNEntrypoint(Entrypoint):
             self.uri_config_key
         ]
         redis_config = self.container.config.get('REDIS', {})
-        self._notification_events = redis_config.get('NOTIFICATION_EVENTS')
+        self._notification_events = redis_config.get('notification_events')
         super().setup()
 
     def start(self):

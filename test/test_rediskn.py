@@ -33,7 +33,7 @@ class TestConfig:
     def test_uses_notification_events_config_if_provided(
         self, create_service, config
     ):
-        config['REDIS']['NOTIFICATION_EVENTS'] = 'TEST_VALUE'
+        config['REDIS']['notification_events'] = 'test_value'
 
         with patch('nameko_rediskn.rediskn.StrictRedis') as strict_redis_mock:
             create_service(
@@ -41,13 +41,13 @@ class TestConfig:
             )
             redis_mock = strict_redis_mock.from_url.return_value
             assert redis_mock.config_set.call_args_list == [
-                call('notify-keyspace-events', 'TEST_VALUE')
+                call('notify-keyspace-events', 'test_value')
             ]
 
     def test_does_not_use_notification_events_config_if_not_provided(
         self, create_service, config
     ):
-        config['REDIS'].pop('NOTIFICATION_EVENTS')
+        config['REDIS'].pop('notification_events')
 
         with patch('nameko_rediskn.rediskn.StrictRedis') as strict_redis_mock:
             create_service(

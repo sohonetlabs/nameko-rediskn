@@ -80,12 +80,12 @@ Nameko_ configuration file:
     # config.yaml
 
     REDIS:
-        NOTIFICATION_EVENTS: "KEA"
+        notification_events: "KEA"
 
     REDIS_URIS:
         MY_REDIS: "redis://localhost:6380/0"
 
-``REDIS[NOTIFICATION_EVENTS]`` is optional and can be omited or just
+``REDIS[notification_events]`` is optional and can be omited or just
 contain ``None``. Otherwise, it must have a valid value for the
 ``'notify-keyspace-events'`` Redis client configuration attribute. This
 should be ideally set on the server side, as setting it in one of the
