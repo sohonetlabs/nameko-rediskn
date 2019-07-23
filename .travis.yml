@@ -1,0 +1,50 @@
+language: python
+python: 3.7
+
+dist: xenial
+
+before_install:
+  - make rabbitmq-container
+  - make redis-container
+
+install:
+  - pip install tox
+
+matrix:
+  include:
+    - stage: test
+      python: 3.5
+      env: TOX_ENV="py35-nameko{2.11,2.12,latest}-redis2.10"
+    - python: 3.5
+      env: TOX_ENV="py35-nameko{2.11,2.12,latest}-redis3.0"
+    - python: 3.5
+      env: TOX_ENV="py35-nameko{2.11,2.12,latest}-redis3.1"
+    - python: 3.5
+      env: TOX_ENV="py35-nameko{2.11,2.12,latest}-redis3.2"
+    - python: 3.5
+      env: TOX_ENV="py35-nameko{2.11,2.12,latest}-redislatest"
+
+    - python: 3.6
+      env: TOX_ENV="py36-nameko{2.11,2.12,latest}-redis2.10"
+    - python: 3.6
+      env: TOX_ENV="py36-nameko{2.11,2.12,latest}-redis3.0"
+    - python: 3.6
+      env: TOX_ENV="py36-nameko{2.11,2.12,latest}-redis3.1"
+    - python: 3.6
+      env: TOX_ENV="py36-nameko{2.11,2.12,latest}-redis3.2"
+    - python: 3.6
+      env: TOX_ENV="py36-nameko{2.11,2.12,latest}-redislatest"
+
+    - python: 3.7
+      env: TOX_ENV="py37-nameko{2.11,2.12,latest}-redis2.10"
+    - python: 3.7
+      env: TOX_ENV="py37-nameko{2.11,2.12,latest}-redis3.0"
+    - python: 3.7
+      env: TOX_ENV="py37-nameko{2.11,2.12,latest}-redis3.1"
+    - python: 3.7
+      env: TOX_ENV="py37-nameko{2.11,2.12,latest}-redis3.2"
+    - python: 3.7
+      env: TOX_ENV="py37-nameko{2.11,2.12,latest}-redislatest"
+
+script:
+  - tox -e $TOX_ENV
