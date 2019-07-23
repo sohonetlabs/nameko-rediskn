@@ -20,7 +20,7 @@ To enable them, a non-empty string must be used. The set of allowed characters
 can be found in the Redis keyspace notifications documentation.
 
 NOTE: it is recomended to set this parameter on the server side (`redis.conf`),
-as setting it in one of the clients (via the CONFIG SET) also affects the rest
+as setting it in one of the clients (via CONFIG SET) also affects the rest
 of them.
 """
 

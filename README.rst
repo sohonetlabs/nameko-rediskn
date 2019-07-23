@@ -27,8 +27,8 @@ databases.
 
 Some event examples:
 
-- ``expire`` events fire for ``EXPIRE`` commands
-- ``expired`` events fire when a key gets deleted due to expiration
+- ``expire`` events fired for ``EXPIRE`` commands
+- ``expired`` events fired when a key gets deleted due to expiration
 
 Usage example:
 
