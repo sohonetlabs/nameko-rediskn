@@ -131,20 +131,9 @@ class RedisKNEntrypoint(Entrypoint):
         """
         self.uri_config_key = uri_config_key
 
-        if events is None:
-            self.events = []
-        else:
-            self.events = _to_list(events)
-
-        if keys is None:
-            self.keys = []
-        else:
-            self.keys = _to_list(keys)
-
-        if dbs is None:
-            self.dbs = None
-        else:
-            self.dbs = _to_list(dbs)
+        self.events = [] if events is None else _to_list(events)
+        self.keys = [] if keys is None else _to_list(keys)
+        self.dbs = None if dbs is None else _to_list(dbs)
 
         self.client = None
         self._thread = None
