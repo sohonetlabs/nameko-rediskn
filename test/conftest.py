@@ -29,9 +29,7 @@ def redis(config):
 @pytest.fixture
 def redis_db_1(config):
     # url argument takes precedence over db in the url
-    redis_uri = '{}?db=1'.format(
-        config['REDIS_URIS'][URI_CONFIG_KEY]
-    )
+    redis_uri = '{}?db=1'.format(config['REDIS_URIS'][URI_CONFIG_KEY])
     client = StrictRedis.from_url(redis_uri, db=1, **REDIS_OPTIONS)
     client.flushall()
     yield client
