@@ -17,12 +17,15 @@ rst-lint:
 flake8:
 	flake8 $(PACKAGE_NAME) test setup.py
 
+black:
+	black --check --verbose .
+
 test:
 	pytest test $(ARGS) \
 		--rabbit-ctl-uri $(RABBIT_CTL_URI) \
 		--amqp-uri $(AMQP_URI)
 
-coverage: rst-lint flake8
+coverage: rst-lint flake8 black
 	coverage run \
 		--concurrency=eventlet \
 		--source $(PACKAGE_NAME) \
