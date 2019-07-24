@@ -10,11 +10,19 @@ from test import REDIS_OPTIONS, TIME_SLEEP, URI_CONFIG_KEY
 
 
 @pytest.fixture
-def config():
+def redis_config():
     return {
         'REDIS': {'notification_events': 'KEA'},
         'REDIS_URIS': {URI_CONFIG_KEY: "redis://localhost:6379/0"},
     }
+
+
+@pytest.fixture
+def config(rabbit_config, redis_config):
+    conf = {}
+    conf.update(rabbit_config or {})
+    conf.update(redis_config or {})
+    return conf
 
 
 @pytest.fixture
