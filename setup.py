@@ -28,7 +28,7 @@ setup(
             'black',
             'restructuredtext-lint',
             'Pygments',
-        ],
+        ]
     },
     zip_safe=True,
     license='MIT License',
