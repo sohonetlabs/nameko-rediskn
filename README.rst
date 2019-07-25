@@ -147,6 +147,8 @@ variable:
 Linting
 ~~~~~~~
 
+It uses Python 3.6 syntax.
+
 To run linting checks using ``tox``:
 
 .. code-block:: shell
