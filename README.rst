@@ -144,6 +144,22 @@ variable:
     $ make coverage RABBIT_CTL_URI=http://guest:guest@localhost:15673 AMQP_URI=amqp://guest:guest@localhost:5673 ARGS='-x -vv --disable-warnings'
 
 
+Linting
+~~~~~~~
+
+To run linting checks using ``tox``:
+
+.. code-block:: shell
+
+    $ tox -e "py37-linting"
+
+A Makefile target can also be used directly:
+
+.. code-block:: shell
+
+    $ make linting
+
+
 Nameko support
 --------------
 
