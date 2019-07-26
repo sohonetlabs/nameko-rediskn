@@ -25,7 +25,7 @@ setup(
             'pytest~=5.0.0',
             'coverage~=4.5.3',
             'flake8',
-            'black',
+            'black;python_version>"3.5"',
             'restructuredtext-lint',
             'Pygments',
         ]
