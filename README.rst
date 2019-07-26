@@ -147,19 +147,11 @@ variable:
 Linting
 ~~~~~~~
 
-It uses Python 3.6 syntax.
-
 To run linting checks using ``tox``:
 
 .. code-block:: shell
 
-    $ tox -e "py37-linting"
-
-A Makefile target can also be used directly:
-
-.. code-block:: shell
-
-    $ make linting
+    $ for env in $(tox -l - | grep linting); do tox -e $env; done
 
 
 Nameko support
