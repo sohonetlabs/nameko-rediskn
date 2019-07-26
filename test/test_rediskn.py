@@ -28,15 +28,11 @@ class TestConfig:
 
         assert exc.value.args[0] == 'TEST_KEY'
 
-    def test_uses_notification_events_config_if_provided(
-        self, create_service, config
-    ):
+    def test_uses_notification_events_config_if_provided(self, create_service, config):
         config['REDIS']['notification_events'] = 'test_value'
 
         with patch('nameko_rediskn.rediskn.StrictRedis') as strict_redis_mock:
-            create_service(
-                uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*'
-            )
+            create_service(uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*')
             redis_mock = strict_redis_mock.from_url.return_value
             assert redis_mock.config_set.call_args_list == [
                 call('notify-keyspace-events', 'test_value')
@@ -48,9 +44,7 @@ class TestConfig:
         config['REDIS'].pop('notification_events')
 
         with patch('nameko_rediskn.rediskn.StrictRedis') as strict_redis_mock:
-            create_service(
-                uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*'
-            )
+            create_service(uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*')
             redis_mock = strict_redis_mock.from_url.return_value
             assert redis_mock.config_set.call_args_list == []
 
@@ -150,9 +144,7 @@ class TestContainerKill:
 
 class TestLogInformation:
     def test_log_start_listening_information(self, create_service, log_mock):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*'
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*')
         assert log_mock.info.call_args_list == [
             call('Started listening to Redis keyspace notifications')
         ]
@@ -466,9 +458,7 @@ class TestListenAll:
 
 class TestListenEvents:
     def test_subscribe_events(self, create_service, tracker):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, events='psubscribe', dbs='*'
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, events='psubscribe', dbs='*')
         assert tracker.call_args_list == [
             call(
                 {
@@ -509,9 +499,7 @@ class TestListenEvents:
         )
 
     @pytest.mark.parametrize('events', [['set', 'hset'], ('set', 'hset')])
-    def test_listen_multiple_events(
-        self, create_service, tracker, redis, events
-    ):
+    def test_listen_multiple_events(self, create_service, tracker, redis, events):
         create_service(uri_config_key=URI_CONFIG_KEY, events=events, dbs='*')
 
         redis.set('foo', 'bar')
@@ -697,9 +685,7 @@ class TestListenDB:
         ]
 
     def test_subscribe_events(self, create_service, tracker):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1)
         assert tracker.call_args_list == [
             call(
                 {
@@ -720,9 +706,7 @@ class TestListenDB:
         ]
 
     def test_listen_db(self, create_service, tracker, redis_db_1):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1)
 
         redis_db_1.set('foo', 'bar')
         sleep(TIME_SLEEP)
@@ -765,12 +749,8 @@ class TestListenDB:
             ],
         )
 
-    def test_listen_multiple_dbs(
-        self, create_service, tracker, redis, redis_db_1
-    ):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=[0, 1]
-        )
+    def test_listen_multiple_dbs(self, create_service, tracker, redis, redis_db_1):
+        create_service(uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=[0, 1])
 
         redis.set('foo', '1')
         sleep(TIME_SLEEP)
@@ -853,9 +833,7 @@ class TestListenDB:
         assert_items_equal(tracker.call_args_list, call_args_list)
 
     def test_ignores_other_dbs(self, create_service, tracker, redis_db_1):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=0
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=0)
         tracker.reset_mock()
 
         redis_db_1.set('foo', 'bar')

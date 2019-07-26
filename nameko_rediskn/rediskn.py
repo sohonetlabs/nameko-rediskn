@@ -118,9 +118,7 @@ class RedisKNEntrypoint(Entrypoint):
                 # ...
     """
 
-    def __init__(
-        self, uri_config_key, events=None, keys=None, dbs=None, **kwargs
-    ):
+    def __init__(self, uri_config_key, events=None, keys=None, dbs=None, **kwargs):
         """Initialize the entrypoint.
 
         Args:
@@ -141,15 +139,11 @@ class RedisKNEntrypoint(Entrypoint):
 
     def setup(self):
         if not self.events and not self.keys:
-            error_message = (
-                'Provide either `events` or `keys` to get notifications'
-            )
+            error_message = 'Provide either `events` or `keys` to get notifications'
             log.error(error_message)
             raise ConfigurationError(error_message)
 
-        self._redis_uri = self.container.config['REDIS_URIS'][
-            self.uri_config_key
-        ]
+        self._redis_uri = self.container.config['REDIS_URIS'][self.uri_config_key]
         redis_config = self.container.config.get('REDIS', {})
         self._notification_events = redis_config.get('notification_events')
         super().setup()
@@ -190,9 +184,7 @@ class RedisKNEntrypoint(Entrypoint):
 
         if self._notification_events is not None:
             # This should ideally be set in redis.conf
-            client.config_set(
-                NOTIFICATIONS_SETTING_KEY, self._notification_events
-            )
+            client.config_set(NOTIFICATIONS_SETTING_KEY, self._notification_events)
 
         self.client = client
 
