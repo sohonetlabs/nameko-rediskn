@@ -1,11 +1,11 @@
-from unittest.mock import call, patch, MagicMock
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 from eventlet import sleep
 from nameko.exceptions import ConfigurationError
 
 from nameko_rediskn import REDIS_PMESSAGE_TYPE
-from test import assert_items_equal, TIME_SLEEP, URI_CONFIG_KEY
+from test import TIME_SLEEP, URI_CONFIG_KEY, assert_items_equal
 
 
 class TestPublicConstants:

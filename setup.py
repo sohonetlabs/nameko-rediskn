@@ -1,7 +1,7 @@
 import os
 from codecs import open
-from setuptools import find_packages, setup
 
+from setuptools import find_packages, setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -26,6 +26,7 @@ setup(
             'coverage~=4.5.3',
             'flake8',
             'black;python_version>"3.5"',
+            'isort',
             'restructuredtext-lint',
             'Pygments',
         ]

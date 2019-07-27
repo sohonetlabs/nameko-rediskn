@@ -1,11 +1,9 @@
 import logging
 from itertools import chain
 
-from redis import StrictRedis
-
 from nameko.exceptions import ConfigurationError
 from nameko.extensions import Entrypoint
-
+from redis import StrictRedis
 
 REDIS_OPTIONS = {'encoding': 'utf-8', 'decode_responses': True}
 
