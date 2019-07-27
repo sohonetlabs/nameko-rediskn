@@ -20,7 +20,7 @@ flake8:
 	flake8 $(PACKAGE_NAME) test setup.py
 
 black:
-	black --check --verbose .
+	black --check --verbose --diff .
 
 linting: rst-lint flake8 black
 
