@@ -6,7 +6,7 @@ from eventlet import sleep
 from redis import StrictRedis
 
 from nameko_rediskn import rediskn
-from test import REDIS_OPTIONS, TIME_SLEEP, URI_CONFIG_KEY
+from tests import REDIS_OPTIONS, TIME_SLEEP, URI_CONFIG_KEY
 
 
 @pytest.fixture

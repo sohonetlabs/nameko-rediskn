@@ -5,7 +5,7 @@ from eventlet import sleep
 from nameko.exceptions import ConfigurationError
 
 from nameko_rediskn import REDIS_PMESSAGE_TYPE
-from test import TIME_SLEEP, URI_CONFIG_KEY, assert_items_equal
+from tests import TIME_SLEEP, URI_CONFIG_KEY, assert_items_equal
 
 
 class TestPublicConstants:

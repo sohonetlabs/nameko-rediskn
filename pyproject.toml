@@ -9,4 +9,4 @@ use_parentheses = true
 multi_line_output = 3
 force_grid_wrap = 0
 # Tests are not included with the package
-known_first_party = ["test"]
+known_first_party = ["tests"]

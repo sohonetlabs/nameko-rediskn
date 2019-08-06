@@ -17,8 +17,8 @@ setup(
     author='Julio Trigo',
     author_email='julio.trigo@sohonet.com',
     url='https://github.com/sohonetlabs/nameko-rediskn',
-    packages=find_packages(exclude=['test', 'test.*']),
     keywords='nameko redis keyspace notifications extension',
+    packages=find_packages(exclude=['*.tests', '*.tests.*', 'tests.*', 'tests']),
     install_requires=['nameko>=2.6', 'redis>=2.10.5'],
     extras_require={
         'dev': [
