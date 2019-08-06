@@ -12,7 +12,8 @@ before_install:
   - make redis-container
 
 install:
-  - pip install tox
+  - pip install -U pip setuptools wheel
+  - pip install -U --upgrade-strategy=eager tox
 
 matrix:
   include:

@@ -15,7 +15,7 @@ rst-lint:
 	rst-lint CHANGELOG.rst
 
 flake8:
-	flake8 $(PACKAGE_NAME) $(TESTS_PACKAGE_NAME) setup.py
+	flake8 src/$(PACKAGE_NAME) $(TESTS_PACKAGE_NAME) setup.py
 
 black:
 	black --check --verbose --diff .
