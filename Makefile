@@ -11,8 +11,7 @@ REDIS_VERSION?=4.0
 # Checks
 
 rst-lint:
-	rst-lint README.rst
-	rst-lint CHANGELOG.rst
+	rst-lint README.rst CHANGELOG.rst
 
 flake8:
 	flake8 src/$(PACKAGE_NAME) $(TESTS_PACKAGE_NAME) setup.py
