@@ -1,7 +1,7 @@
 import os
 from codecs import open
-from setuptools import setup, find_packages
 
+from setuptools import find_packages, setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -18,23 +18,29 @@ setup(
     author_email='julio.trigo@sohonet.com',
     url='https://github.com/sohonetlabs/nameko-rediskn',
     packages=find_packages(exclude=['test', 'test.*']),
+    keywords='nameko redis keyspace notifications extension',
     install_requires=['nameko>=2.6', 'redis>=2.10.5'],
     extras_require={
         'dev': [
             'pytest~=5.0.0',
             'coverage~=4.5.3',
             'flake8',
+            'flake8-bugbear',
+            'black;python_version>"3.5"',
+            'isort',
             'restructuredtext-lint',
             'Pygments',
-        ],
+        ]
     },
     zip_safe=True,
     license='MIT License',
     classifiers=[
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
+        "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
@@ -43,5 +49,5 @@ setup(
         "Topic :: Database :: Front-Ends",
         "Topic :: Internet",
         "Topic :: Software Development :: Libraries :: Python Modules",
-    ]
+    ],
 )

@@ -102,3 +102,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# TODO: remove
+# Temporarily added until the following issue gets resolved
+# https://github.com/pypa/pip/issues/6213
+pip-wheel-metadata

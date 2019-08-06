@@ -1,21 +1,19 @@
-from unittest.mock import call, patch, MagicMock
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 from eventlet import sleep
 from nameko.exceptions import ConfigurationError
 
 from nameko_rediskn import REDIS_PMESSAGE_TYPE
-from test import assert_items_equal, TIME_SLEEP, URI_CONFIG_KEY
+from test import TIME_SLEEP, URI_CONFIG_KEY, assert_items_equal
 
 
 class TestPublicConstants:
-
     def test_value(self):
         assert REDIS_PMESSAGE_TYPE == 'pmessage'
 
 
 class TestConfig:
-
     def test_raises_if_uri_config_key_not_found(self, create_service, config):
         config['REDIS_URIS'] = {'WRONG_KEY': "redis://localhost:6379/0"}
 
@@ -30,15 +28,11 @@ class TestConfig:
 
         assert exc.value.args[0] == 'TEST_KEY'
 
-    def test_uses_notification_events_config_if_provided(
-        self, create_service, config
-    ):
+    def test_uses_notification_events_config_if_provided(self, create_service, config):
         config['REDIS']['notification_events'] = 'test_value'
 
         with patch('nameko_rediskn.rediskn.StrictRedis') as strict_redis_mock:
-            create_service(
-                uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*'
-            )
+            create_service(uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*')
             redis_mock = strict_redis_mock.from_url.return_value
             assert redis_mock.config_set.call_args_list == [
                 call('notify-keyspace-events', 'test_value')
@@ -50,15 +44,12 @@ class TestConfig:
         config['REDIS'].pop('notification_events')
 
         with patch('nameko_rediskn.rediskn.StrictRedis') as strict_redis_mock:
-            create_service(
-                uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*'
-            )
+            create_service(uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*')
             redis_mock = strict_redis_mock.from_url.return_value
             assert redis_mock.config_set.call_args_list == []
 
 
 class TestSubscribeAPI:
-
     def test_raises_if_uri_config_key_not_supplied(self, create_service):
         with pytest.raises(TypeError):
             create_service()
@@ -84,7 +75,6 @@ class TestSubscribeAPI:
 
 
 class TestContainerStop:
-
     def test_kills_thread_if_exists(self, create_service):
         with patch(
             'nameko.containers.ServiceContainer.spawn_managed_thread'
@@ -119,7 +109,6 @@ class TestContainerStop:
 
 
 class TestContainerKill:
-
     def test_kills_thread_if_exists(self, create_service):
         with patch(
             'nameko.containers.ServiceContainer.spawn_managed_thread'
@@ -154,11 +143,8 @@ class TestContainerKill:
 
 
 class TestLogInformation:
-
     def test_log_start_listening_information(self, create_service, log_mock):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*'
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs='*')
         assert log_mock.info.call_args_list == [
             call('Started listening to Redis keyspace notifications')
         ]
@@ -177,7 +163,6 @@ class TestLogInformation:
 
 
 class TestListenAll:
-
     @pytest.fixture
     def service(self, create_service):
         return create_service(
@@ -205,7 +190,7 @@ class TestListenAll:
                         'data': 2,
                     }
                 ),
-            ]
+            ],
         )
 
     @pytest.mark.parametrize(
@@ -259,7 +244,7 @@ class TestListenAll:
                         'data': key,
                     }
                 ),
-            ]
+            ],
         )
 
     @pytest.mark.usefixtures('service')
@@ -319,7 +304,7 @@ class TestListenAll:
                         'data': 'foo',
                     }
                 ),
-            ]
+            ],
         )
 
     @pytest.mark.parametrize('keys', [('one',), ('one', 'two')])
@@ -380,7 +365,7 @@ class TestListenAll:
                         'data': 'foo',
                     }
                 ),
-            ]
+            ],
         )
 
     @pytest.mark.parametrize(
@@ -472,11 +457,8 @@ class TestListenAll:
 
 
 class TestListenEvents:
-
     def test_subscribe_events(self, create_service, tracker):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, events='psubscribe', dbs='*'
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, events='psubscribe', dbs='*')
         assert tracker.call_args_list == [
             call(
                 {
@@ -513,13 +495,11 @@ class TestListenEvents:
                         'data': 'foo',
                     }
                 ),
-            ]
+            ],
         )
 
     @pytest.mark.parametrize('events', [['set', 'hset'], ('set', 'hset')])
-    def test_listen_multiple_events(
-        self, create_service, tracker, redis, events
-    ):
+    def test_listen_multiple_events(self, create_service, tracker, redis, events):
         create_service(uri_config_key=URI_CONFIG_KEY, events=events, dbs='*')
 
         redis.set('foo', 'bar')
@@ -579,7 +559,6 @@ class TestListenEvents:
 
 
 class TestListenKeys:
-
     def test_subscribe_events(self, create_service, tracker):
         create_service(uri_config_key=URI_CONFIG_KEY, keys='foo', dbs='*')
         assert tracker.call_args_list == [
@@ -618,7 +597,7 @@ class TestListenKeys:
                         'data': 'set',
                     }
                 ),
-            ]
+            ],
         )
 
     @pytest.mark.parametrize('keys', [['foo', 'bar'], ('foo', 'bar')])
@@ -684,7 +663,6 @@ class TestListenKeys:
 
 
 class TestListenDB:
-
     def test_subscribes_to_db_from_uri(self, create_service, tracker):
         create_service(uri_config_key=URI_CONFIG_KEY, keys='*', events='*')
         assert tracker.call_args_list == [
@@ -707,9 +685,7 @@ class TestListenDB:
         ]
 
     def test_subscribe_events(self, create_service, tracker):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1)
         assert tracker.call_args_list == [
             call(
                 {
@@ -730,9 +706,7 @@ class TestListenDB:
         ]
 
     def test_listen_db(self, create_service, tracker, redis_db_1):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=1)
 
         redis_db_1.set('foo', 'bar')
         sleep(TIME_SLEEP)
@@ -772,15 +746,11 @@ class TestListenDB:
                         'data': 'foo',
                     }
                 ),
-            ]
+            ],
         )
 
-    def test_listen_multiple_dbs(
-        self, create_service, tracker, redis, redis_db_1
-    ):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=[0, 1]
-        )
+    def test_listen_multiple_dbs(self, create_service, tracker, redis, redis_db_1):
+        create_service(uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=[0, 1])
 
         redis.set('foo', '1')
         sleep(TIME_SLEEP)
@@ -863,9 +833,7 @@ class TestListenDB:
         assert_items_equal(tracker.call_args_list, call_args_list)
 
     def test_ignores_other_dbs(self, create_service, tracker, redis_db_1):
-        create_service(
-            uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=0
-        )
+        create_service(uri_config_key=URI_CONFIG_KEY, keys='*', events='*', dbs=0)
         tracker.reset_mock()
 
         redis_db_1.set('foo', 'bar')

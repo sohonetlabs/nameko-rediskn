@@ -10,11 +10,19 @@ from test import REDIS_OPTIONS, TIME_SLEEP, URI_CONFIG_KEY
 
 
 @pytest.fixture
-def config():
+def redis_config():
     return {
         'REDIS': {'notification_events': 'KEA'},
         'REDIS_URIS': {URI_CONFIG_KEY: "redis://localhost:6379/0"},
     }
+
+
+@pytest.fixture
+def config(rabbit_config, redis_config):
+    conf = {}
+    conf.update(rabbit_config or {})
+    conf.update(redis_config or {})
+    return conf
 
 
 @pytest.fixture
@@ -29,9 +37,7 @@ def redis(config):
 @pytest.fixture
 def redis_db_1(config):
     # url argument takes precedence over db in the url
-    redis_uri = '{}?db=1'.format(
-        config['REDIS_URIS'][URI_CONFIG_KEY]
-    )
+    redis_uri = '{}?db=1'.format(config['REDIS_URIS'][URI_CONFIG_KEY])
     client = StrictRedis.from_url(redis_uri, db=1, **REDIS_OPTIONS)
     client.flushall()
     yield client

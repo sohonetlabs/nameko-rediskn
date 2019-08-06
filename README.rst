@@ -18,6 +18,9 @@ Nameko Redis Keyspace Notifications
 .. image:: https://travis-ci.org/sohonetlabs/nameko-rediskn.svg?branch=master
     :target: https://travis-ci.org/sohonetlabs/nameko-rediskn
 
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+
 
 Usage
 -----
@@ -139,6 +142,16 @@ variable:
 
     $ make test RABBIT_CTL_URI=http://guest:guest@localhost:15673 AMQP_URI=amqp://guest:guest@localhost:5673 ARGS='-x -vv --disable-warnings'
     $ make coverage RABBIT_CTL_URI=http://guest:guest@localhost:15673 AMQP_URI=amqp://guest:guest@localhost:5673 ARGS='-x -vv --disable-warnings'
+
+
+Linting
+~~~~~~~
+
+To run linting checks using ``tox``:
+
+.. code-block:: shell
+
+    $ for env in $(tox -l - | grep linting); do tox -e $env; done
 
 
 Nameko support

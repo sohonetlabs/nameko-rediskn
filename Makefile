@@ -10,6 +10,8 @@ RABBITMQ_VERSION?=3.6-management
 REDIS_VERSION?=4.0
 
 
+# Checks
+
 rst-lint:
 	rst-lint README.rst
 	rst-lint CHANGELOG.rst
@@ -17,12 +19,22 @@ rst-lint:
 flake8:
 	flake8 $(PACKAGE_NAME) test setup.py
 
+black:
+	black --check --verbose --diff .
+
+isort:
+	isort --recursive --check-only --diff
+
+linting: rst-lint flake8 black isort
+
+# Tests
+
 test:
 	pytest test $(ARGS) \
 		--rabbit-ctl-uri $(RABBIT_CTL_URI) \
 		--amqp-uri $(AMQP_URI)
 
-coverage: rst-lint flake8
+coverage:
 	coverage run \
 		--concurrency=eventlet \
 		--source $(PACKAGE_NAME) \
