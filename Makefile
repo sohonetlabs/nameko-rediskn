@@ -23,7 +23,10 @@ black:
 isort:
 	isort --recursive --check-only --diff
 
-linting: rst-lint flake8 black isort
+check-manifest:
+	check-manifest --verbose
+
+linting: rst-lint flake8 black isort check-manifest
 
 # Tests
 

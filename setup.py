@@ -29,6 +29,7 @@ setup(
             'flake8-bugbear',
             'black;python_version>"3.5"',
             'isort',
+            'check-manifest',
             'restructuredtext-lint',
             'Pygments',
         ]
