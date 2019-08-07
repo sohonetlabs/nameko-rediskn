@@ -131,7 +131,7 @@ the correct version of libraries like ``pip``, ``setuptools`` and
 
     $ pip install -U --upgrade-strategy=eager tox
     $ tox
-    $ tox -e "py37-namekolatest-redislatest"
+    $ tox -e "py37-namekolatest-redislatest-test"
 
 There are other Makefile targets that can be used to run the tests, but
 extra dependencies will have to be installed, including this package in
