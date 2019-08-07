@@ -1,7 +1,5 @@
-.PHONY: test
-
-
 PACKAGE_NAME=nameko_rediskn
+TESTS_PACKAGE_NAME=tests
 
 RABBIT_CTL_URI?=http://guest:guest@localhost:15672
 AMQP_URI?=amqp://guest:guest@localhost:5672
@@ -13,11 +11,10 @@ REDIS_VERSION?=4.0
 # Checks
 
 rst-lint:
-	rst-lint README.rst
-	rst-lint CHANGELOG.rst
+	rst-lint README.rst CHANGELOG.rst
 
 flake8:
-	flake8 $(PACKAGE_NAME) test setup.py
+	flake8 src/$(PACKAGE_NAME) $(TESTS_PACKAGE_NAME) setup.py
 
 black:
 	black --check --verbose --diff .
@@ -25,12 +22,15 @@ black:
 isort:
 	isort --recursive --check-only --diff
 
-linting: rst-lint flake8 black isort
+check-manifest:
+	check-manifest --verbose
+
+linting: rst-lint flake8 black isort check-manifest
 
 # Tests
 
 test:
-	pytest test $(ARGS) \
+	pytest $(TESTS_PACKAGE_NAME) $(ARGS) \
 		--rabbit-ctl-uri $(RABBIT_CTL_URI) \
 		--amqp-uri $(AMQP_URI)
 
@@ -39,7 +39,7 @@ coverage:
 		--concurrency=eventlet \
 		--source $(PACKAGE_NAME) \
 		--branch \
-		-m pytest test $(ARGS) \
+		-m pytest $(TESTS_PACKAGE_NAME) $(ARGS) \
 		--rabbit-ctl-uri $(RABBIT_CTL_URI) \
 		--amqp-uri $(AMQP_URI)
 	coverage report --show-missing --fail-under 100

@@ -102,8 +102,8 @@ refering to the Redis URI of the instance being used.
 Tests
 -----
 
-It is assumed that **RabbitMQ** is up and running on the default URI
-``guest:guest@localhost`` and uses the default ports.
+**RabbitMQ** should be up and running on the default URI
+``guest:guest@localhost`` and using the default ports.
 
 **Redis** should be also running on the default port.
 
@@ -115,16 +115,27 @@ containers locally using the default ports and configuration:
     $ make rabbitmq-container
     $ make redis-container
 
-To run the tests locally:
+A virtual environment should be set up and up to date:
 
 .. code-block:: shell
 
     $ # Create/activate a virtual environment
-    $ pip install tox
-    $ tox
+    $ pip install -U pip setuptools wheel
 
-There are other Makefile targets to run the tests, but the extra
-dependencies will have to be installed:
+``tox`` can be used to run the tests. It is recomented that all its
+dependencies, specially ``virtualenv``, are up to date, so that it uses
+the correct version of libraries like ``pip``, ``setuptools`` and
+``wheel``:
+
+.. code-block:: shell
+
+    $ pip install -U --upgrade-strategy=eager tox
+    $ tox
+    $ tox -e "py37-namekolatest-redislatest-test"
+
+There are other Makefile targets that can be used to run the tests, but
+extra dependencies will have to be installed, including this package in
+develop mode:
 
 .. code-block:: shell
 
