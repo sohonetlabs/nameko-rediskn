@@ -2,6 +2,7 @@ from collections import namedtuple
 from unittest.mock import Mock, patch
 
 import pytest
+import eventlet
 from eventlet import sleep
 from redis import StrictRedis
 
@@ -74,3 +75,34 @@ def create_service(container_factory, config, tracker):
 def log_mock():
     with patch('nameko_rediskn.rediskn.log') as log_mock:
         yield log_mock
+
+
+
+@pytest.fixture
+def mock_strict_redis():
+    with patch('nameko_rediskn.rediskn.StrictRedis') as m:
+        yield m
+
+@pytest.fixture
+def mock_redis_client(mock_strict_redis):
+    return mock_strict_redis.from_url.return_value
+
+
+@pytest.fixture
+def mock_pubsub(mock_redis_client):
+    return mock_redis_client.pubsub.return_value
+
+
+@pytest.fixture
+def mock_container(mock_container, config):
+    mock_container.spawn_managed_thread = eventlet.spawn
+    mock_container.config = config
+    mock_container.service_name = 'MockService'
+    return mock_container
+
+
+@pytest.fixture
+def entrypoint(mock_container):
+    return rediskn.RedisKNEntrypoint(
+        uri_config_key=URI_CONFIG_KEY, events='*', keys='*', dbs=[0]
+    ).bind(mock_container, 'test_method')
