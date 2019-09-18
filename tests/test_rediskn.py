@@ -1,13 +1,13 @@
 import logging
 from unittest.mock import MagicMock, call, patch
 
-import pytest
 import eventlet
+import pytest
 from eventlet import sleep
 from nameko.exceptions import ConfigurationError
 
 from nameko_rediskn import REDIS_PMESSAGE_TYPE
-from tests import TIMEOUT, TIME_SLEEP, URI_CONFIG_KEY, assert_items_equal
+from tests import TIME_SLEEP, TIMEOUT, URI_CONFIG_KEY, assert_items_equal
 
 
 class TestPublicConstants:
@@ -145,8 +145,9 @@ def redis_listen(*side_effects):
     """
     for effect in side_effects:
         if (
-            isinstance(effect, Exception) or
-            isinstance(effect, type) and issubclass(effect, Exception)
+            isinstance(effect, Exception)
+            or isinstance(effect, type)
+            and issubclass(effect, Exception)
         ):
             raise effect
         elif callable(effect):
@@ -165,10 +166,7 @@ class TestErrorHandling:
     def test_error_subscribing(self, mock_redis_client, entrypoint):
         mock_pubsub_1 = MagicMock()
         mock_pubsub_2 = MagicMock()
-        mock_redis_client.pubsub.side_effect = [
-            mock_pubsub_1,
-            mock_pubsub_2
-        ]
+        mock_redis_client.pubsub.side_effect = [mock_pubsub_1, mock_pubsub_2]
         mock_pubsub_1.psubscribe.side_effect = [None, ConnectionError('Boom!')]
         event = eventlet.Event()
         mock_pubsub_2.psubscribe.return_value = None
@@ -182,30 +180,27 @@ class TestErrorHandling:
 
         assert mock_redis_client.pubsub.call_args_list == [call(), call()]
         assert mock_pubsub_1.psubscribe.call_args_list == [
-            call('__keyevent@0__:*'), call('__keyspace@0__:*')
+            call('__keyevent@0__:*'),
+            call('__keyspace@0__:*'),
         ]
         assert not mock_pubsub_1.listen.called
         assert mock_pubsub_2.psubscribe.call_args_list == [
-            call('__keyevent@0__:*'), call('__keyspace@0__:*')
+            call('__keyevent@0__:*'),
+            call('__keyspace@0__:*'),
         ]
         assert mock_pubsub_2.listen.call_args_list == [call()]
 
     @pytest.mark.parametrize(
-        'exception',
-        [ConnectionError('BOOM'), TimeoutError('BOOM'), Exception('BOOM')]
+        'exception', [ConnectionError('BOOM'), TimeoutError('BOOM'), Exception('BOOM')]
     )
     @pytest.mark.usefixtures('mock_sleep')
     def test_reconnect_on_error(
-        self, create_service, mock_redis_client, tracker, caplog,
-        exception
+        self, create_service, mock_redis_client, tracker, caplog, exception
     ):
         event = eventlet.Event()
         mock_pubsub_1 = MagicMock()
         mock_pubsub_2 = MagicMock()
-        mock_redis_client.pubsub.side_effect = [
-            mock_pubsub_1,
-            mock_pubsub_2
-        ]
+        mock_redis_client.pubsub.side_effect = [mock_pubsub_1, mock_pubsub_2]
         mock_pubsub_1.listen.side_effect = exception
         mock_pubsub_2.listen.return_value = redis_listen(
             {
@@ -214,7 +209,7 @@ class TestErrorHandling:
                 'channel': '__keyspace@0__:foo',
                 'data': 'expire',
             },
-            event.wait
+            event.wait,
         )
 
         with eventlet.Timeout(TIMEOUT):
@@ -223,18 +218,21 @@ class TestErrorHandling:
 
         assert mock_redis_client.pubsub.call_args_list == [call(), call()]
         assert (
-            'nameko_rediskn.rediskn', logging.ERROR,
-            'Error while listening for redis keyspace notifications'
+            'nameko_rediskn.rediskn',
+            logging.ERROR,
+            'Error while listening for redis keyspace notifications',
         ) in caplog.record_tuples
         assert mock_pubsub_1.listen.call_args_list == [call()]
         assert mock_pubsub_2.listen.call_args_list == [call()]
         assert tracker.call_args_list == [
-            call({
-                'type': 'pmessage',
-                'pattern': '__keyspace@*__:*',
-                'channel': '__keyspace@0__:foo',
-                'data': 'expire',
-            })
+            call(
+                {
+                    'type': 'pmessage',
+                    'pattern': '__keyspace@*__:*',
+                    'channel': '__keyspace@0__:foo',
+                    'data': 'expire',
+                }
+            )
         ]
 
     @pytest.mark.parametrize(
@@ -244,11 +242,16 @@ class TestErrorHandling:
             (0.5, [0.5, 1.0, 2.0, 4.0, 0.5]),
             (1, [1, 2, 4, 8, 1]),
             (3, [3, 6, 12, 24, 3]),
-        ]
+        ],
     )
     def test_exponential_backoff_listen_error(
-        self, entrypoint, config, mock_pubsub, mock_sleep, backoff_factor,
-        sleep_durations
+        self,
+        entrypoint,
+        config,
+        mock_pubsub,
+        mock_sleep,
+        backoff_factor,
+        sleep_durations,
     ):
         config['REDIS'] = {'pubsub_backoff_factor': backoff_factor}
         entrypoint.setup()
@@ -265,9 +268,9 @@ class TestErrorHandling:
                     'channel': '__keyspace@0__:foo',
                     'data': 'expire',
                 },
-                ConnectionError('Error5')
+                ConnectionError('Error5'),
             ),
-            redis_listen(event.wait)
+            redis_listen(event.wait),
         ]
 
         with eventlet.Timeout(TIMEOUT):
@@ -297,9 +300,9 @@ class TestErrorHandling:
                     'channel': '__keyspace@0__:foo',
                     'data': 'expire',
                 },
-                ConnectionError('Error5')
+                ConnectionError('Error5'),
             ),
-            redis_listen(event.wait)
+            redis_listen(event.wait),
         ]
 
         with eventlet.Timeout(TIMEOUT):
@@ -322,11 +325,16 @@ class TestErrorHandling:
             (0.5, [0.5, 1.0, 2.0, 4.0]),
             (1, [1, 2, 4, 8]),
             (3, [3, 6, 12, 24]),
-        ]
+        ],
     )
     def test_exponential_backoff_subscribe_error(
-        self, entrypoint, config, mock_pubsub, mock_sleep, backoff_factor,
-        sleep_durations
+        self,
+        entrypoint,
+        config,
+        mock_pubsub,
+        mock_sleep,
+        backoff_factor,
+        sleep_durations,
     ):
         config['REDIS'] = {'pubsub_backoff_factor': backoff_factor}
         entrypoint.setup()
@@ -336,7 +344,8 @@ class TestErrorHandling:
             Exception('Error2'),
             ConnectionError('Error3'),
             TimeoutError('Error4'),
-            None, None  # Subscribes successfully
+            None,
+            None,  # Subscribes successfully
         ]
         mock_pubsub.listen.side_effect = event.wait
 

@@ -1,8 +1,8 @@
 from collections import namedtuple
 from unittest.mock import Mock, patch
 
-import pytest
 import eventlet
+import pytest
 from eventlet import sleep
 from redis import StrictRedis
 
@@ -77,11 +77,11 @@ def log_mock():
         yield log_mock
 
 
-
 @pytest.fixture
 def mock_strict_redis():
     with patch('nameko_rediskn.rediskn.StrictRedis') as m:
         yield m
+
 
 @pytest.fixture
 def mock_redis_client(mock_strict_redis):

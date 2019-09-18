@@ -2,10 +2,9 @@ import logging
 from itertools import chain
 
 from eventlet import sleep
-from redis import StrictRedis
-
 from nameko.exceptions import ConfigurationError
 from nameko.extensions import Entrypoint
+from redis import StrictRedis
 
 
 REDIS_OPTIONS = {'encoding': 'utf-8', 'decode_responses': True}
@@ -184,7 +183,7 @@ class RedisKNEntrypoint(Entrypoint):
                 try:
                     pubsub = self._subscribe()
 
-                    for message in pubsub.listen():  #pragma: no branch
+                    for message in pubsub.listen():  # pragma: no branch
                         error_count = 0
                         self.container.spawn_worker(self, [message], {})
                 except Exception:
