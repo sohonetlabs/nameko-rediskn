@@ -84,6 +84,7 @@ Nameko_ configuration file:
 
     REDIS:
         notification_events: "KEA"
+        pubsub_backoff_factor: 3
 
     REDIS_URIS:
         MY_REDIS: "redis://localhost:6380/0"
@@ -93,6 +94,12 @@ contain ``None``. Otherwise, it must have a valid value for the
 ``'notify-keyspace-events'`` Redis client configuration attribute. This
 should be ideally set on the server side, as setting it in one of the
 Redis clients will affect the rest of them.
+
+``REDIS[pubsub_backoff_factor]`` sets the exponential backoff factor for
+reconnecting to Redis on errors. If an error occurs while listening for Redis
+events, we sleep for ``backoff_factor * 2 ** (n - 1)`` where ``n`` is the
+number of consecutive errors that have occurred. If omitted, this defaults
+to ``2``.
 
 ``REDIS_URIS`` follows the config format used by the `Nameko Redis`_
 dependency provider, where ``MY_REDIS`` is just the attribute name
