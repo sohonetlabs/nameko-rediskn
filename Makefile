@@ -37,7 +37,7 @@ test:
 coverage:
 	coverage run \
 		--concurrency=eventlet \
-		--source src/$(PACKAGE_NAME) \
+		--source $(PACKAGE_NAME) \
 		--branch \
 		-m pytest $(TESTS_PACKAGE_NAME) $(ARGS) \
 		--rabbit-ctl-uri $(RABBIT_CTL_URI) \
