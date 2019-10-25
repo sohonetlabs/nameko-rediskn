@@ -32,7 +32,6 @@ KEYSPACE_TEMPLATE = '__keyspace@{db}__:{key}'
 REDIS_PMESSAGE_TYPE = 'pmessage'
 """Pattern-matching subscription message type."""
 
-
 DEFAULT_BACKOFF_FACTOR = 2
 """
 Default backoff factor for exponential backoff on errors while listening for
