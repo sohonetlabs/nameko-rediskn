@@ -1,6 +1,7 @@
 import logging
 from itertools import chain
 
+from eventlet import sleep
 from nameko.exceptions import ConfigurationError
 from nameko.extensions import Entrypoint
 from redis import StrictRedis
@@ -31,8 +32,14 @@ KEYSPACE_TEMPLATE = '__keyspace@{db}__:{key}'
 REDIS_PMESSAGE_TYPE = 'pmessage'
 """Pattern-matching subscription message type."""
 
+DEFAULT_BACKOFF_FACTOR = 2
+"""
+Default backoff factor for exponential backoff on errors while listening for
+redis events. On an error, we will sleep for `backoff_factor * 2 ** (n - 1)`
+where `n` is the number of consecutive errors that have occurred.
+"""
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 class RedisKNEntrypoint(Entrypoint):
@@ -144,32 +151,52 @@ class RedisKNEntrypoint(Entrypoint):
         self._redis_uri = self.container.config['REDIS_URIS'][self.uri_config_key]
         redis_config = self.container.config.get('REDIS', {})
         self._notification_events = redis_config.get('notification_events')
+        self._backoff_factor = redis_config.get(
+            'pubsub_backoff_factor', DEFAULT_BACKOFF_FACTOR
+        )
         super().setup()
 
     def start(self):
         self._thread = self.container.spawn_managed_thread(self._run)
         super().start()
+        log.debug("%s started", self)
 
     def stop(self):
         self._kill_thread()
         super().stop()
+        log.debug("%s stopped", self)
 
     def kill(self):
         self._kill_thread()
         super().kill()
+        log.debug("%s killed", self)
 
     def _run(self):
         """Run the main loop which listens for subscription events."""
         self._create_client()
-        pubsub = self._subscribe()
+        pubsub = None
 
         log.info('Started listening to Redis keyspace notifications')
+        error_count = 0
 
         try:
-            for message in pubsub.listen():
-                self.container.spawn_worker(self, [message], {})
+            while True:
+                try:
+                    pubsub = self._subscribe()
+
+                    for message in pubsub.listen():  # pragma: no branch
+                        error_count = 0
+                        self.container.spawn_worker(self, [message], {})
+                except Exception:
+                    log.exception(
+                        'Error while listening for redis keyspace notifications'
+                    )
+                    sleep(self._backoff_factor * 2 ** error_count)
+                    error_count += 1
+                finally:
+                    if pubsub is not None:
+                        pubsub.close()
         finally:
-            pubsub.close()
             log.info('Stopped listening to Redis keyspace notifications')
 
     def _create_client(self):
@@ -187,6 +214,7 @@ class RedisKNEntrypoint(Entrypoint):
         self.client = client
 
     def _subscribe(self):
+        log.debug('%s setting up redis subscriptions', self)
         pubsub = self.client.pubsub()
 
         keyevent_patterns = (
@@ -209,8 +237,6 @@ class RedisKNEntrypoint(Entrypoint):
     def _kill_thread(self):
         if self._thread is not None:
             self._thread.kill()
-            self._thread = None
-        self.client = None
 
 
 def _to_list(arg):

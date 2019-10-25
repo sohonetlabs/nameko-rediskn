@@ -23,7 +23,7 @@ setup(
     install_requires=['nameko>=2.6', 'redis>=2.10.5'],
     extras_require={
         'dev': [
-            'pytest~=5.0.0',
+            'pytest<5.0.0',
             'coverage~=4.5.3',
             'flake8',
             'flake8-bugbear',
