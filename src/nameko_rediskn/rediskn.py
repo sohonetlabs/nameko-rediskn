@@ -159,14 +159,17 @@ class RedisKNEntrypoint(Entrypoint):
     def start(self):
         self._thread = self.container.spawn_managed_thread(self._run)
         super().start()
+        log.debug("%s started", self)
 
     def stop(self):
         self._kill_thread()
         super().stop()
+        log.debug("%s stopped", self)
 
     def kill(self):
         self._kill_thread()
         super().kill()
+        log.debug("%s killed", self)
 
     def _run(self):
         """Run the main loop which listens for subscription events."""
@@ -211,6 +214,7 @@ class RedisKNEntrypoint(Entrypoint):
         self.client = client
 
     def _subscribe(self):
+        log.debug('%s setting up redis subscriptions', self)
         pubsub = self.client.pubsub()
 
         keyevent_patterns = (
