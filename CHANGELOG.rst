@@ -10,7 +10,7 @@ Backwards-compatible changes increment the minor version number only.
 0.1.1
 -----
 
-Released: TBD
+Released 2019-10-28
 
 * Reconnect to redis on errors (`#6 <https://github.com/sohonetlabs/nameko-rediskn/pull/6>`_)
 * New config key ``pubsub_backoff_factor`` (`#6 <https://github.com/sohonetlabs/nameko-rediskn/pull/6>`_)
