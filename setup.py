@@ -10,7 +10,7 @@ with open(os.path.join(here, 'README.rst'), 'r', 'utf-8') as handle:
 
 setup(
     name='nameko-rediskn',
-    version='0.1.0',
+    version='0.1.1',
     description='Nameko Redis Keyspace Notifications extension.',
     long_description=readme,
     long_description_content_type='text/x-rst',
